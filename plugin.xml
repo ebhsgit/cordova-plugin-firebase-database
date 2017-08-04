@@ -1,0 +1,51 @@
+<plugin xmlns="http://apache.org/cordova/ns/plugins/1.0"
+xmlns:android="http://schemas.android.com/apk/res/android"
+           id="cordova-plugin-firebase-database"
+      version="0.10.0">
+
+    <name>cordova-plugin-firebase-database</name>
+    <description>Cordova plugin for Firebase Realtime Database</description>
+    <license>MIT</license>
+    <keywords>cordova</keywords>
+    <repo>https://github.com/chemerisuk/cordova-plugin-firebase-database</repo>
+    <issue>https://github.com/chemerisuk/cordova-plugin-firebase-database/issues</issue>
+
+    <js-module src="www/FirebaseDatabase.js" name="FirebaseDatabase">
+        <merges target="cordova.plugins.firebase.database" />
+    </js-module>
+
+    <engines>
+        <engine name="cordova" version=">=3.5.0"/>
+    </engines>
+
+    <dependency id="cordova-plugin-firebase-analytics" version="~0.10.0"/>
+
+    <platform name="ios">
+        <config-file target="config.xml" parent="/*">
+            <feature name="FirebaseDatabase">
+                <param name="ios-package" value="FirebaseDatabasePlugin" />
+                <param name="onload" value="true" />
+            </feature>
+        </config-file>
+
+        <header-file src="src/ios/FirebaseDatabasePlugin.h" />
+        <source-file src="src/ios/FirebaseDatabasePlugin.m" />
+
+        <pod id="Firebase/Crash"/>
+    </platform>
+
+    <platform name="android">
+        <config-file target="res/xml/config.xml" parent="/*">
+            <feature name="FirebaseDatabase">
+                <param name="android-package" value="by.chemerisuk.cordova.firebase.FirebaseDatabasePlugin" />
+                <param name="onload" value="true" />
+            </feature>
+        </config-file>
+
+        <framework src="com.google.firebase:firebase-database:11.0.+" />
+
+        <source-file src="src/android/FirebaseDatabasePlugin.java"
+            target-dir="src/by/chemerisuk/cordova/firebase/" />
+    </platform>
+
+</plugin>

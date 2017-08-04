@@ -1,0 +1,31 @@
+{
+  "name": "cordova-plugin-firebase-database",
+  "version": "0.10.0",
+  "description": "Cordova plugin for Firebase Realtime Database",
+  "cordova": {
+    "id": "cordova-plugin-firebase-database",
+    "platforms": [
+      "ios",
+      "android"
+    ]
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/chemerisuk/cordova-plugin-firebase-database.git"
+  },
+  "author": "Maksim Chemerisuk <chemerisuk@gmail.com> (https://github.com/chemerisuk)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/chemerisuk/cordova-plugin-firebase-database/issues"
+  },
+  "homepage": "https://github.com/chemerisuk/cordova-plugin-firebase-database#readme",
+  "keywords": [
+    "cordova",
+    "firebase",
+    "realtime database",
+    "analytics",
+    "ecosystem:cordova",
+    "cordova-android",
+    "cordova-ios"
+  ]
+}
