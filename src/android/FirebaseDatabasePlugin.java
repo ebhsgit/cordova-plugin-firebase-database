@@ -1,4 +1,4 @@
-package com.blakgeek.cordova.plugin;
+package by.chemerisuk.cordova.firebase;
 
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
@@ -52,7 +52,7 @@ public class FirebaseDatabasePlugin extends CordovaPlugin {
         return true;
     }
 
-    private void on(JSONArray args, CallbackContext callbackContext, final boolean keepCallback) throws JSONException {
+    private void on(JSONArray args, final CallbackContext callbackContext, final boolean keepCallback) throws JSONException {
         final String type = args.getString(0);
         final String path = args.getString(1);
         final JSONObject orderBy = args.optJSONObject(2);
@@ -77,9 +77,9 @@ public class FirebaseDatabasePlugin extends CordovaPlugin {
 
         // TODO: _filter, _limit
 
-        cordova.getThreadPool().execute(new Runnable() {
-            @Override
-            public void run() {
+        // cordova.getThreadPool().execute(new Runnable() {
+        //     @Override
+        //     public void run() {
                 if ("value".equals(type)) {
                     query.addValueEventListener(new ValueEventListener() {
                         @Override
@@ -126,10 +126,10 @@ public class FirebaseDatabasePlugin extends CordovaPlugin {
                         public void onCancelled(DatabaseError databaseError) {
                             callbackContext.error(databaseError.getCode());
                         }
-                    })
+                    });
                 }
-            }
-        });
+        //     }
+        // });
     }
 
     private static PluginResult createPluginResult(DataSnapshot dataSnapshot, boolean keepCallback) {
