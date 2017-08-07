@@ -58,27 +58,7 @@ public class FirebaseDatabasePlugin extends CordovaPlugin {
         final String uid = args.getString(0);
         final String type = args.getString(1);
         final String path = args.getString(2);
-        final JSONObject orderBy = args.optJSONObject(3);
-        final JSONArray includes = args.optJSONArray(4);
-        final int limit = args.optInt(5);
-
-        Query query = this.database.getReference(path);
-
-        if (orderBy != null) {
-            if (orderBy.has("key")) {
-                query = query.orderByKey();
-            } else if (orderBy.has("value")) {
-                query = query.orderByValue();
-            } else if (orderBy.has("priority")) {
-                query = query.orderByPriority();
-            } else if (orderBy.has("child")) {
-                query = query.orderByChild(orderBy.getString("child"));
-            } else {
-                throw new JSONException("order is invalid");
-            }
-        }
-
-        // TODO: _filter, _limit
+        final Query query = createQuery(path, args.optJSONObject(3), args.optJSONArray(4), args.optJSONObject(5));
 
         if ("value".equals(type)) {
             listeners.put(uid, query.addValueEventListener(new ValueEventListener() {
@@ -146,6 +126,73 @@ public class FirebaseDatabasePlugin extends CordovaPlugin {
         }
 
         callbackContext.success();
+    }
+
+    private Query createQuery(String path, JSONObject orderBy, JSONArray includes, JSONObject limit) throws JSONException {
+        Query query = this.database.getReference(path);
+
+        if (orderBy != null) {
+            if (orderBy.has("key")) {
+                query = query.orderByKey();
+            } else if (orderBy.has("value")) {
+                query = query.orderByValue();
+            } else if (orderBy.has("priority")) {
+                query = query.orderByPriority();
+            } else if (orderBy.has("child")) {
+                query = query.orderByChild(orderBy.getString("child"));
+            } else {
+                throw new JSONException("order is invalid");
+            }
+
+            for (int i = 0, n = includes.length(); i < n; ++i) {
+                JSONObject filters = includes.getJSONObject(i);
+
+                String key = filters.optString("key");
+                Object endAt = filters.opt("endAt");
+                Object startAt = filters.opt("startAt");
+                Object equalTo = filters.opt("equalTo");
+
+                if (startAt != null) {
+                    if (startAt instanceof Number) {
+                        query = query.startAt((Double)startAt, key);
+                    } else if (startAt instanceof Boolean) {
+                        query = query.startAt((Boolean)startAt, key);
+                    } else {
+                        query = query.startAt(startAt.toString(), key);
+                    }
+                } else if (endAt != null) {
+                    if (endAt instanceof Number) {
+                        query = query.endAt((Double)endAt, key);
+                    } else if (endAt instanceof Boolean) {
+                        query = query.endAt((Boolean)endAt, key);
+                    } else {
+                        query = query.endAt(endAt.toString(), key);
+                    }
+                } else if (equalTo != null) {
+                    if (equalTo instanceof Number) {
+                        query = query.equalTo((Double)equalTo, key);
+                    } else if (equalTo instanceof Boolean) {
+                        query = query.equalTo((Boolean)equalTo, key);
+                    } else {
+                        query = query.equalTo(equalTo.toString(), key);
+                    }
+                } else {
+                    throw new JSONException("includes are invalid");
+                }
+            }
+
+            if (limit != null) {
+                if (limit.has("first")) {
+                    query = query.limitToFirst(limit.getInt("first"));
+                } else if (limit.has("last")) {
+                    query = query.limitToLast(limit.getInt("last"));
+                } else {
+                    throw new JSONException("limit is invalid");
+                }
+            }
+        }
+
+        return query;
     }
 
     private static PluginResult createPluginResult(DataSnapshot dataSnapshot, String previousChildName, boolean keepCallback) {

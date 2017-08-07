@@ -1,6 +1,7 @@
 var exec = require("cordova/exec");
 var utils = require("cordova/utils");
 var PLUGIN_NAME = "FirebaseDatabase";
+var noop = function() {};
 
 function DbSnapshot(ref, data) {
     this.ref = ref;
@@ -71,8 +72,10 @@ DbQuery.prototype = {
         return callback;
     },
     off: function(eventType, callback) {
-        exec(cb, errorCallback, PLUGIN_NAME, "off",
-            [callback._id, eventType, this.ref._path]);
+        var ref = this.ref;
+
+        exec(noop, noop, PLUGIN_NAME, "off",
+            [callback._id, eventType, ref._path]);
     },
     orderByChild: function(path) {
         return new DbQuery(this.ref, {child: path});
