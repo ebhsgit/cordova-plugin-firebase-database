@@ -98,6 +98,10 @@ function DbRef(path) {
 
 DbRef.prototype = new DbQuery();
 
+DbRef.prototype.child = function(path) {
+    return new DbRef(this._path.split("/").concat(path.split("/")).join("/"));
+};
+
 module.exports = {
     ref: function(path) {
         return new DbRef(path);
