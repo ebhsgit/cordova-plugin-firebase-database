@@ -19,19 +19,20 @@ DbSnapshot.prototype = {
 function DbQuery(ref, orderBy) {
     this.ref = ref;
     this._orderBy = orderBy;
+    this._includes = [];
 }
 
 DbQuery.prototype = {
     endAt: function(value, key) {
-        this._filter = {endAt: value, key: key};
+        this._includes.push({endAt: value, key: key});
         return this;
     },
     startAt: function(value, key) {
-        this._filter = {startAt: value, key: key};
+        this._includes.push({startAt: value, key: key});
         return this;
     },
     equalTo: function(value, key) {
-        this._filter = {equalTo: value, key: key};
+        this._includes.push({equalTo: value, key: key});
         return this;
     },
     limitToFirst: function(limit) {
@@ -49,7 +50,7 @@ DbQuery.prototype = {
             };
 
         exec(cb, errorCallback, PLUGIN_NAME, "on",
-            [eventType, this._path, this._orderBy, this._filter, this._limit]);
+            [eventType, this._path, this._orderBy, this._includes, this._limit]);
     },
     once: function(eventType, callback, errorCallback) {
         var ref = this.ref;
@@ -58,7 +59,7 @@ DbQuery.prototype = {
             };
 
         exec(cb, errorCallback, PLUGIN_NAME, "once",
-            [eventType, this._path, this._orderBy, this._filter, this._limit]);
+            [eventType, this._path, this._orderBy, this._includes, this._limit]);
     },
     off: function(eventType, callback) {
 
@@ -78,6 +79,7 @@ DbQuery.prototype = {
 };
 
 function DbRef(path) {
+    this.ref = this;
     this._path = path;
 }
 

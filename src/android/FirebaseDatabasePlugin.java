@@ -56,7 +56,7 @@ public class FirebaseDatabasePlugin extends CordovaPlugin {
         final String type = args.getString(0);
         final String path = args.getString(1);
         final JSONObject orderBy = args.optJSONObject(2);
-        final JSONObject filter = args.optJSONObject(3);
+        final JSONArray includes = args.optJSONArray(3);
         final int limit = args.optInt(4);
 
         Query query = this.database.getReference(path);
