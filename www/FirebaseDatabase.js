@@ -1,4 +1,5 @@
 var exec = require("cordova/exec");
+var utils = require("cordova/utils");
 var PLUGIN_NAME = "FirebaseDatabase";
 
 function DbSnapshot(ref, data) {
@@ -43,26 +44,35 @@ DbQuery.prototype = {
         this._limit = {last: limit};
         return this;
     },
-    on: function(eventType, callback, errorCallback) {
+    on: function(eventType, success, error) {
         var ref = this.ref;
-        var cb = function(data) {
-                callback(new DbSnapshot(ref, data));
+        var callback = function(data) {
+                success(new DbSnapshot(ref, data));
             };
 
-        exec(cb, errorCallback, PLUGIN_NAME, "on",
-            [eventType, this._path, this._orderBy, this._includes, this._limit]);
+        callback._id = utils.createUUID();
+
+        exec(callback, error, PLUGIN_NAME, "on",
+            [callback._id, eventType, ref._path, this._orderBy, this._includes, this._limit]);
+
+        return callback;
     },
-    once: function(eventType, callback, errorCallback) {
+    once: function(eventType, success, error) {
         var ref = this.ref;
-        var cb = function(data) {
-                callback(new DbSnapshot(ref, data));
+        var callback = function(data) {
+                success(new DbSnapshot(ref, data));
             };
 
-        exec(cb, errorCallback, PLUGIN_NAME, "once",
-            [eventType, this._path, this._orderBy, this._includes, this._limit]);
+        callback._id = utils.createUUID();
+
+        exec(callback, error, PLUGIN_NAME, "once",
+            [callback._id, eventType, ref._path, this._orderBy, this._includes, this._limit]);
+
+        return callback;
     },
     off: function(eventType, callback) {
-
+        exec(cb, errorCallback, PLUGIN_NAME, "off",
+            [callback._id, eventType, this.ref._path]);
     },
     orderByChild: function(path) {
         return new DbQuery(this.ref, {child: path});
