@@ -77,14 +77,16 @@ public class FirebaseDatabasePlugin extends CordovaPlugin {
 
         // TODO: _filter, _limit
 
-        // cordova.getThreadPool().execute(new Runnable() {
-        //     @Override
-        //     public void run() {
+        final DatabaseReference ref = query.getRef();
+
+        cordova.getThreadPool().execute(new Runnable() {
+            @Override
+            public void run() {
                 if ("value".equals(type)) {
-                    query.addValueEventListener(new ValueEventListener() {
+                    ref.addValueEventListener(new ValueEventListener() {
                         @Override
                         public void onDataChange(DataSnapshot snapshot) {
-                            callbackContext.sendPluginResult(createPluginResult(snapshot, keepCallback));
+                            callbackContext.sendPluginResult(createPluginResult(snapshot, null, keepCallback));
                         }
 
                         @Override
@@ -93,32 +95,32 @@ public class FirebaseDatabasePlugin extends CordovaPlugin {
                         }
                     });
                 } else {
-                    query.addChildEventListener(new ChildEventListener() {
+                    ref.addChildEventListener(new ChildEventListener() {
                         @Override
                         public void onChildAdded(DataSnapshot snapshot, String previousChildName) {
                             if ("child_added".equals(type)) {
-                                callbackContext.sendPluginResult(createPluginResult(snapshot, keepCallback));
+                                callbackContext.sendPluginResult(createPluginResult(snapshot, previousChildName, keepCallback));
                             }
                         }
 
                         @Override
                         public void onChildChanged(DataSnapshot snapshot, String previousChildName) {
                             if ("child_changed".equals(type)) {
-                                callbackContext.sendPluginResult(createPluginResult(snapshot, keepCallback));
+                                callbackContext.sendPluginResult(createPluginResult(snapshot, previousChildName, keepCallback));
                             }
                         }
 
                         @Override
                         public void onChildRemoved(DataSnapshot snapshot) {
                             if ("child_removed".equals(type)) {
-                                callbackContext.sendPluginResult(createPluginResult(snapshot, keepCallback));
+                                callbackContext.sendPluginResult(createPluginResult(snapshot, null, keepCallback));
                             }
                         }
 
                         @Override
                         public void onChildMoved(DataSnapshot snapshot, String previousChildName) {
                             if ("child_moved".equals(type)) {
-                                callbackContext.sendPluginResult(createPluginResult(snapshot, keepCallback));
+                                callbackContext.sendPluginResult(createPluginResult(snapshot, previousChildName, keepCallback));
                             }
                         }
 
@@ -128,20 +130,41 @@ public class FirebaseDatabasePlugin extends CordovaPlugin {
                         }
                     });
                 }
-        //     }
-        // });
+            }
+        });
     }
 
-    private static PluginResult createPluginResult(DataSnapshot dataSnapshot, boolean keepCallback) {
+    private static PluginResult createPluginResult(DataSnapshot dataSnapshot, String previousChildName, boolean keepCallback) {
         JSONObject data = new JSONObject();
+        Object value = dataSnapshot.getValue(false);
         try {
-            data.put("key", dataSnapshot.getKey());
+            data.put("previousChildName", previousChildName);
             data.put("priority", dataSnapshot.getPriority());
-            data.put("value", dataSnapshot.getValue());
+            data.put("key", dataSnapshot.getKey());
+            if (value instanceof Map) {
+                value = toJSON((Map<String, Object>)value);
+            } else if (value instanceof List) {
+                value = new JSONArray((List)value);
+            }
+            data.put("value", value);
         } catch (JSONException e) {}
 
         PluginResult pluginResult = new PluginResult(PluginResult.Status.OK, data);
         pluginResult.setKeepCallback(keepCallback);
         return pluginResult;
+    }
+
+    private static JSONObject toJSON(Map<String, Object> values) throws JSONException {
+        JSONObject result = new JSONObject();
+        for (Map.Entry<String, Object> entry : values.entrySet()) {
+            Object value = entry.getValue();
+            if (value instanceof Map) {
+                value = new JSONObject((Map)value);
+            } else if (value instanceof List) {
+                value = new JSONArray((List)value);
+            }
+            result.put(entry.getKey(), value);
+        }
+        return result;
     }
 }
