@@ -61,7 +61,7 @@ public class FirebaseDatabasePlugin extends CordovaPlugin {
         final Query query = createQuery(path, args.optJSONObject(3), args.optJSONArray(4), args.optJSONObject(5));
 
         if ("value".equals(type)) {
-            listeners.put(uid, query.addValueEventListener(new ValueEventListener() {
+            ValueEventListener listener = new ValueEventListener() {
                 @Override
                 public void onDataChange(DataSnapshot snapshot) {
                     callbackContext.sendPluginResult(createPluginResult(snapshot, null, keepCallback));
@@ -71,7 +71,15 @@ public class FirebaseDatabasePlugin extends CordovaPlugin {
                 public void onCancelled(DatabaseError databaseError) {
                     callbackContext.error(databaseError.getCode());
                 }
-            }));
+            };
+
+            if (keepCallback) {
+                query.addValueEventListener(listener);
+            } else {
+                query.addListenerForSingleValueEvent(listener);
+            }
+
+            listeners.put(uid, listener);
         } else {
             listeners.put(uid, query.addChildEventListener(new ChildEventListener() {
                 @Override
