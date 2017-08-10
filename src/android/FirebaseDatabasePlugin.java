@@ -41,10 +41,8 @@ public class FirebaseDatabasePlugin extends CordovaPlugin {
             off(args, callbackContext);
         // } else if ("update".equals(action)) {
         //     update(args, callbackContext);
-        // } else if ("set".equals(action)) {
-        //     set(args, callbackContext);
-        // } else if ("remove".equals(action)) {
-        //     remove(args, callbackContext);
+        } else if ("set".equals(action)) {
+            set(args, callbackContext);
         // } else if ("push".equals(action)) {
         //     push(args, callbackContext);
         } else {
@@ -134,6 +132,31 @@ public class FirebaseDatabasePlugin extends CordovaPlugin {
         }
 
         callbackContext.success();
+    }
+
+    private void set(JSONArray args, final CallbackContext callbackContext) throws JSONException {
+        Object value = args.get(1);
+        Object priority = args.get(2);
+
+        DatabaseReference ref = this.database.getReference(args.getString(0));
+        DatabaseReference.CompletionListener listener = new DatabaseReference.CompletionListener() {
+            @Override
+            public void onComplete(DatabaseError error, DatabaseReference ref) {
+                if (error != null) {
+                    callbackContext.error(error.getCode());
+                } else {
+                    callbackContext.success();
+                }
+            }
+        };
+
+        if (value == null && priority == null) {
+            ref.removeValue(listener);
+        } else if (priority == null) {
+            ref.setValue(value, listener);
+        } else {
+            ref.setValue(value, priority, listener);
+        }
     }
 
     private Query createQuery(String path, JSONObject orderBy, JSONArray includes, JSONObject limit) throws JSONException {

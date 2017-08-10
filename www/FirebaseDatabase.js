@@ -102,6 +102,22 @@ DbRef.prototype.child = function(path) {
     return new DbRef(this._path.split("/").concat(path.split("/")).join("/"));
 };
 
+DbRef.prototype.remove = function(success, error) {
+    exec(success, error, PLUGIN_NAME, "set", [this._path]);
+};
+
+DbRef.prototype.set = function(value, success, error) {
+    exec(success, error, PLUGIN_NAME, "set", [this._path, value]);
+};
+
+DbRef.prototype.setPriority = function(priority, success, error) {
+    exec(success, error, PLUGIN_NAME, "set", [this._path, null, priority]);
+};
+
+DbRef.prototype.setWithPriority = function(value, priority, success, error) {
+    exec(success, error, PLUGIN_NAME, "set", [this._path, value, priority]);
+};
+
 module.exports = {
     ref: function(path) {
         return new DbRef(path);
