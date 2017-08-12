@@ -122,10 +122,10 @@ module.exports = {
     ref: function(path) {
         return new DbRef(path);
     },
-    goOffline: function() {
-
+    goOnline: function(success, error) {
+        exec(success, error, PLUGIN_NAME, "goOnline", []);
     },
-    goOnline: function() {
-
+    goOffline: function(success, error) {
+        exec(success, error, PLUGIN_NAME, "goOffline", []);
     }
 };

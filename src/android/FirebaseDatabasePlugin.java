@@ -43,6 +43,10 @@ public class FirebaseDatabasePlugin extends CordovaPlugin {
         //     update(args, callbackContext);
         } else if ("set".equals(action)) {
             set(args, callbackContext);
+        } else if ("goOffline".equals(action)) {
+            database.goOffline();
+        } else if ("goOnline".equals(action)) {
+            database.goOnline();
         // } else if ("push".equals(action)) {
         //     push(args, callbackContext);
         } else {
