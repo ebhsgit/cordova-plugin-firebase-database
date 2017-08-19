@@ -59,18 +59,20 @@
     if (uid) {
         FIRDatabaseHandle handle = [query observeEventType:type
             withBlock:^(FIRDataSnapshot *_Nonnull snapshot) {
-                // [snapshot value];
-                // NSDictionary *result;
-                // CDVPluginResult *pluginResult = [self snapshotToResult:snapshot];
-                // [pluginResult setKeepCallbackAsBool:YES];
-                // [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+                CDVPluginResult *pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:@{
+                    @"key": snapshot.key,
+                    @"value": snapshot.value,
+                    @"priority": snapshot.priority
+                }];
+                [pluginResult setKeepCallbackAsBool:YES];
+                [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
             }
             withCancelBlock:^(NSError *error) {
-                // CDVPluginResult *pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsDictionary:@{
-                //         @"code": @(error.code),
-                //         @"message": error.description
-                // }];
-                // [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+                CDVPluginResult *pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsDictionary:@{
+                        @"code": @(error.code),
+                        @"message": error.description
+                }];
+                [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
             }
         ];
 
@@ -78,17 +80,19 @@
     } else {
         [query observeSingleEventOfType:type
             withBlock:^(FIRDataSnapshot *_Nonnull snapshot) {
-                // [snapshot value];
-                // NSDictionary *result;
-                // CDVPluginResult *pluginResult = [self snapshotToResult:snapshot];
-                // [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+                CDVPluginResult *pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:@{
+                    @"key": snapshot.key,
+                    @"value": snapshot.value,
+                    @"priority": snapshot.priority
+                }];
+                [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
             }
             withCancelBlock:^(NSError *error) {
-                // CDVPluginResult *pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsDictionary:@{
-                //         @"code": @(error.code),
-                //         @"message": error.description
-                // }];
-                // [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+                CDVPluginResult *pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsDictionary:@{
+                        @"code": @(error.code),
+                        @"message": error.description
+                }];
+                [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
             }
         ];
     }

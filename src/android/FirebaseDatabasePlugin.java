@@ -64,7 +64,7 @@ public class FirebaseDatabasePlugin extends CordovaPlugin {
             ValueEventListener listener = new ValueEventListener() {
                 @Override
                 public void onDataChange(DataSnapshot snapshot) {
-                    callbackContext.sendPluginResult(createPluginResult(snapshot, null, keepCallback));
+                    callbackContext.sendPluginResult(createPluginResult(snapshot, keepCallback));
                 }
 
                 @Override
@@ -83,28 +83,28 @@ public class FirebaseDatabasePlugin extends CordovaPlugin {
                 @Override
                 public void onChildAdded(DataSnapshot snapshot, String previousChildName) {
                     if ("child_added".equals(type)) {
-                        callbackContext.sendPluginResult(createPluginResult(snapshot, previousChildName, keepCallback));
+                        callbackContext.sendPluginResult(createPluginResult(snapshot, keepCallback));
                     }
                 }
 
                 @Override
                 public void onChildChanged(DataSnapshot snapshot, String previousChildName) {
                     if ("child_changed".equals(type)) {
-                        callbackContext.sendPluginResult(createPluginResult(snapshot, previousChildName, keepCallback));
+                        callbackContext.sendPluginResult(createPluginResult(snapshot, keepCallback));
                     }
                 }
 
                 @Override
                 public void onChildRemoved(DataSnapshot snapshot) {
                     if ("child_removed".equals(type)) {
-                        callbackContext.sendPluginResult(createPluginResult(snapshot, null, keepCallback));
+                        callbackContext.sendPluginResult(createPluginResult(snapshot, keepCallback));
                     }
                 }
 
                 @Override
                 public void onChildMoved(DataSnapshot snapshot, String previousChildName) {
                     if ("child_moved".equals(type)) {
-                        callbackContext.sendPluginResult(createPluginResult(snapshot, previousChildName, keepCallback));
+                        callbackContext.sendPluginResult(createPluginResult(snapshot, keepCallback));
                     }
                 }
 
@@ -236,11 +236,10 @@ public class FirebaseDatabasePlugin extends CordovaPlugin {
         return query;
     }
 
-    private static PluginResult createPluginResult(DataSnapshot dataSnapshot, String previousChildName, boolean keepCallback) {
+    private static PluginResult createPluginResult(DataSnapshot dataSnapshot, boolean keepCallback) {
         JSONObject data = new JSONObject();
         Object value = dataSnapshot.getValue(false);
         try {
-            data.put("previousChildName", previousChildName);
             data.put("priority", dataSnapshot.getPriority());
             data.put("key", dataSnapshot.getKey());
             if (value instanceof Map) {
