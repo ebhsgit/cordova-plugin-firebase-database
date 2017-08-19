@@ -43,10 +43,8 @@ public class FirebaseDatabasePlugin extends CordovaPlugin {
         //     update(args, callbackContext);
         } else if ("set".equals(action)) {
             set(args, callbackContext);
-        } else if ("goOffline".equals(action)) {
-            database.goOffline();
-        } else if ("goOnline".equals(action)) {
-            database.goOnline();
+        } else if ("setOnline".equals(action)) {
+            setOnline(args.getBoolean(0), callbackContext);
         // } else if ("push".equals(action)) {
         //     push(args, callbackContext);
         } else {
@@ -161,6 +159,16 @@ public class FirebaseDatabasePlugin extends CordovaPlugin {
         } else {
             ref.setValue(value, priority, listener);
         }
+    }
+
+    private void setOnline(boolean enabled, CallbackContext callbackContext) {
+        if (enabled) {
+            database.goOnline();
+        } else {
+            database.goOffline();
+        }
+
+        callbackContext.success();
     }
 
     private Query createQuery(String path, JSONObject orderBy, JSONArray includes, JSONObject limit) throws JSONException {

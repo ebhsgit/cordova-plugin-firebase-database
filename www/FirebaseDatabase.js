@@ -123,9 +123,9 @@ module.exports = {
         return new DbRef(path);
     },
     goOnline: function(success, error) {
-        exec(success, error, PLUGIN_NAME, "goOnline", []);
+        exec(success, error, PLUGIN_NAME, "setOnline", [true]);
     },
     goOffline: function(success, error) {
-        exec(success, error, PLUGIN_NAME, "goOffline", []);
+        exec(success, error, PLUGIN_NAME, "setOnline", [false]);
     }
 };
