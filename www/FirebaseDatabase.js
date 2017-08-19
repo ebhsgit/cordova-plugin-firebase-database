@@ -22,6 +22,7 @@ function DbQuery(ref, orderBy) {
     this.ref = ref;
     this._orderBy = orderBy;
     this._includes = [];
+    this._limit = {};
 }
 
 DbQuery.prototype = {

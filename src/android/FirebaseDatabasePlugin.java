@@ -227,8 +227,6 @@ public class FirebaseDatabasePlugin extends CordovaPlugin {
                     query = query.limitToFirst(limit.getInt("first"));
                 } else if (limit.has("last")) {
                     query = query.limitToLast(limit.getInt("last"));
-                } else {
-                    throw new JSONException("limit is invalid");
                 }
             }
         }

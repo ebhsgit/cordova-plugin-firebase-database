@@ -56,45 +56,21 @@
     }
 
     NSString *uid = [command.arguments objectAtIndex:5];
-    if (uid) {
-        FIRDatabaseHandle handle = [query observeEventType:type
-            withBlock:^(FIRDataSnapshot *_Nonnull snapshot) {
-                CDVPluginResult *pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:@{
-                    @"key": snapshot.key,
-                    @"value": snapshot.value,
-                    @"priority": snapshot.priority
-                }];
-                [pluginResult setKeepCallbackAsBool:YES];
-                [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
-            }
-            withCancelBlock:^(NSError *error) {
-                CDVPluginResult *pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsDictionary:@{
-                        @"code": @(error.code),
-                        @"message": error.description
-                }];
-                [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
-            }
-        ];
+    id handler = ^(FIRDataSnapshot *_Nonnull snapshot) {
+        CDVPluginResult *pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:@{
+            @"key": snapshot.key,
+            @"value": snapshot.value,
+            @"priority": snapshot.priority
+        }];
+        [pluginResult setKeepCallbackAsBool:(uid ? YES : NO)];
+        [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+    };
 
-        [self.listeners setObject:handle forKey:uid];
+    if (uid) {
+        FIRDatabaseHandle handle = [query observeEventType:type withBlock:handler];
+        [self.listeners setObject:@(handle) forKey:uid];
     } else {
-        [query observeSingleEventOfType:type
-            withBlock:^(FIRDataSnapshot *_Nonnull snapshot) {
-                CDVPluginResult *pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:@{
-                    @"key": snapshot.key,
-                    @"value": snapshot.value,
-                    @"priority": snapshot.priority
-                }];
-                [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
-            }
-            withCancelBlock:^(NSError *error) {
-                CDVPluginResult *pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsDictionary:@{
-                        @"code": @(error.code),
-                        @"message": error.description
-                }];
-                [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
-            }
-        ];
+        [query observeSingleEventOfType:type withBlock:handler];
     }
 }
 
@@ -104,7 +80,7 @@
     NSString *path = [command argumentAtIndex:2 withDefault:@"/" andClass:[NSString class]];
     FIRDatabaseReference *ref = [self.database.reference child:path];
 
-    ref.removeObserverWithHandle(self.listeners[uid]);
+    [ref removeObserverWithHandle:self.listeners[uid]];
     [self.listeners removeObjectForKey:uid];
 
     CDVPluginResult *pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
@@ -122,10 +98,10 @@
         NSString* path = [orderBy objectForKey:@"child"];
         if (path) {
             return [ref queryOrderedByChild:path];
-        } else {
-            return ref;
         }
     }
+
+    return ref;
 }
 
 - (FIRDatabaseQuery *)filterQuery:(FIRDatabaseQuery *)query withCondition:(NSDictionary *)condition {
