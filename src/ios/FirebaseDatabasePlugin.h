@@ -10,7 +10,6 @@
 // - (void)update:(CDVInvokedUrlCommand *)command;
 - (void)setOnline:(CDVInvokedUrlCommand *)command;
 
-@property(strong) NSString *eventCallbackId;
 @property(strong) FIRDatabase *database;
 @property(strong) NSMutableDictionary *listeners;
 

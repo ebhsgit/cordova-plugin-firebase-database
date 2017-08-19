@@ -74,7 +74,7 @@ public class FirebaseDatabasePlugin extends CordovaPlugin {
             };
 
             if (keepCallback) {
-                listeners.put(query.addValueEventListener(listener));
+                listeners.put(uid, query.addValueEventListener(listener));
             } else {
                 query.addListenerForSingleValueEvent(listener);
             }

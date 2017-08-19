@@ -31,7 +31,7 @@ xmlns:android="http://schemas.android.com/apk/res/android"
         <header-file src="src/ios/FirebaseDatabasePlugin.h" />
         <source-file src="src/ios/FirebaseDatabasePlugin.m" />
 
-        <pod id="Firebase/Crash"/>
+        <pod id="Firebase/Database"/>
     </platform>
 
     <platform name="android">
