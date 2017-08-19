@@ -54,7 +54,7 @@ DbQuery.prototype = {
         callback._id = utils.createUUID();
 
         exec(callback, error, PLUGIN_NAME, "on",
-            [callback._id, eventType, ref._path, this._orderBy, this._includes, this._limit]);
+            [eventType, ref._path, this._orderBy, this._includes, this._limit, callback._id]);
 
         return callback;
     },
@@ -64,10 +64,8 @@ DbQuery.prototype = {
                 success(new DbSnapshot(ref, data));
             };
 
-        callback._id = utils.createUUID();
-
-        exec(callback, error, PLUGIN_NAME, "once",
-            [callback._id, eventType, ref._path, this._orderBy, this._includes, this._limit]);
+        exec(callback, error, PLUGIN_NAME, "on",
+            [eventType, ref._path, this._orderBy, this._includes, this._limit]);
 
         return callback;
     },

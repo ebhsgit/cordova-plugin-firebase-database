@@ -3,7 +3,6 @@
 
 @interface FirebaseDatabasePlugin : CDVPlugin
 
-- (void)once:(CDVInvokedUrlCommand *)command;
 - (void)on:(CDVInvokedUrlCommand *)command;
 - (void)off:(CDVInvokedUrlCommand *)command;
 // - (void)push:(CDVInvokedUrlCommand *)command;
@@ -13,6 +12,6 @@
 
 @property(strong) NSString *eventCallbackId;
 @property(strong) FIRDatabase *database;
-@property(strong) NSMutableDictionary *observerRemovers;
+@property(strong) NSMutableDictionary *listeners;
 
 @end

@@ -33,10 +33,8 @@ public class FirebaseDatabasePlugin extends CordovaPlugin {
 
     @Override
     public boolean execute(String action, JSONArray args, CallbackContext callbackContext) throws JSONException {
-        if ("once".equals(action)) {
-            on(args, callbackContext, false);
-        } else if ("on".equals(action)) {
-            on(args, callbackContext, true);
+        if ("on".equals(action)) {
+            on(args, callbackContext);
         } else if ("off".equals(action)) {
             off(args, callbackContext);
         // } else if ("update".equals(action)) {
@@ -54,11 +52,13 @@ public class FirebaseDatabasePlugin extends CordovaPlugin {
         return true;
     }
 
-    private void on(JSONArray args, final CallbackContext callbackContext, final boolean keepCallback) throws JSONException {
-        final String uid = args.getString(0);
-        final String type = args.getString(1);
-        final String path = args.getString(2);
-        final Query query = createQuery(path, args.optJSONObject(3), args.optJSONArray(4), args.optJSONObject(5));
+    private void on(JSONArray args, final CallbackContext callbackContext) throws JSONException {
+        final String type = args.getString(0);
+        final String path = args.getString(1);
+        final Query query = createQuery(path, args.optJSONObject(2), args.optJSONArray(3), args.optJSONObject(4));
+
+        final String uid = args.getString(5);
+        final boolean keepCallback = uid != null;
 
         if ("value".equals(type)) {
             ValueEventListener listener = new ValueEventListener() {
@@ -74,13 +74,11 @@ public class FirebaseDatabasePlugin extends CordovaPlugin {
             };
 
             if (keepCallback) {
-                query.addValueEventListener(listener);
+                listeners.put(query.addValueEventListener(listener));
             } else {
                 query.addListenerForSingleValueEvent(listener);
             }
-
-            listeners.put(uid, listener);
-        } else {
+        } else if (keepCallback) {
             listeners.put(uid, query.addChildEventListener(new ChildEventListener() {
                 @Override
                 public void onChildAdded(DataSnapshot snapshot, String previousChildName) {
