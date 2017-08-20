@@ -25,17 +25,18 @@
     FIRDatabaseReference *ref = [self.database referenceWithPath:path];
 
     [ref setValue:value withCompletionBlock:^(NSError *error, FIRDatabaseReference *ref) {
-        CDVPluginResult *pluginResult;
-        if (error) {
-
-            pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsDictionary:@{
-                    @"code": @(error.code),
-                    @"message": error.description
-            }];
-        } else {
-            pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:path];
-        }
-        [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+        dispatch_async(dispatch_get_main_queue(), ^{
+            CDVPluginResult *pluginResult;
+            if (error) {
+                pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsDictionary:@{
+                        @"code": @(error.code),
+                        @"message": error.description
+                }];
+            } else {
+                pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:path];
+            }
+            [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+        });
     }];
 }
 
@@ -55,13 +56,15 @@
 
     NSString *uid = [command.arguments objectAtIndex:5];
     id handler = ^(FIRDataSnapshot *_Nonnull snapshot) {
-        CDVPluginResult *pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:@{
-            @"key": snapshot.key,
-            @"value": snapshot.value,
-            @"priority": snapshot.priority
-        }];
-        [pluginResult setKeepCallbackAsBool:(uid ? YES : NO)];
-        [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+        dispatch_async(dispatch_get_main_queue(), ^{
+            CDVPluginResult *pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:@{
+                @"key": snapshot.key,
+                @"value": snapshot.value,
+                @"priority": snapshot.priority
+            }];
+            [pluginResult setKeepCallbackAsBool:(uid ? YES : NO)];
+            [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+        });
     };
 
     if (uid) {
@@ -76,8 +79,9 @@
     NSString *path = [command argumentAtIndex:0 withDefault:@"/" andClass:[NSString class]];
     NSString *uid = [command.arguments objectAtIndex:1];
     FIRDatabaseReference *ref = [self.database referenceWithPath:path];
-
-    [ref removeObserverWithHandle:self.listeners[uid]];
+    id handlePtr = [self.listeners objectForKey:uid];
+    // dereference handlePtr to get FIRDatabaseHandle value
+    [ref removeObserverWithHandle:[handlePtr intValue]];
     [self.listeners removeObjectForKey:uid];
 
     CDVPluginResult *pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
