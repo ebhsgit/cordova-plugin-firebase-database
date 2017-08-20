@@ -51,9 +51,7 @@
     for (NSDictionary* condition in includes) {
         query = [self filterQuery:query withCondition:condition];
     }
-    if (limit) {
-        query = [self limitQuery:query withCondition:limit];
-    }
+    query = [self limitQuery:query withCondition:limit];
 
     NSString *uid = [command.arguments objectAtIndex:5];
     id handler = ^(FIRDataSnapshot *_Nonnull snapshot) {
@@ -106,30 +104,34 @@
 }
 
 - (FIRDatabaseQuery *)filterQuery:(FIRDatabaseQuery *)query withCondition:(NSDictionary *)condition {
-    NSString* childKey = [condition objectForKey:@"key"];
-    id endAt = [condition objectForKey:@"endAt"];
-    id startAt = [condition objectForKey:@"startAt"];
-    id equalTo = [condition objectForKey:@"equalTo"];
+    if ([condition class] != [NSNull class]) {
+        NSString* childKey = [condition objectForKey:@"key"];
+        id endAt = [condition objectForKey:@"endAt"];
+        id startAt = [condition objectForKey:@"startAt"];
+        id equalTo = [condition objectForKey:@"equalTo"];
 
-    if (startAt) {
-        return [query queryStartingAtValue:startAt childKey:childKey];
-    } else if (endAt) {
-        return [query queryEndingAtValue:endAt childKey:childKey];
-    } else if (equalTo) {
-        return [query queryEqualToValue:equalTo childKey:childKey];
-    } // else throw error?
+        if (startAt) {
+            return [query queryStartingAtValue:startAt childKey:childKey];
+        } else if (endAt) {
+            return [query queryEndingAtValue:endAt childKey:childKey];
+        } else if (equalTo) {
+            return [query queryEqualToValue:equalTo childKey:childKey];
+        } // else throw error?
+    }
 
     return query;
 }
 
 - (FIRDatabaseQuery *)limitQuery:(FIRDatabaseQuery *)query withCondition:(NSDictionary *)condition {
-    id first = [condition objectForKey:@"first"];
-    id last = [condition objectForKey:@"last"];
+    if ([condition class] != [NSNull class]) {
+        id first = [condition objectForKey:@"first"];
+        id last = [condition objectForKey:@"last"];
 
-    if (first) {
-        return [query queryLimitedToFirst:[first integerValue]];
-    } else if (last) {
-        return [query queryLimitedToLast:[last integerValue]];
+        if (first) {
+            return [query queryLimitedToFirst:[first integerValue]];
+        } else if (last) {
+            return [query queryLimitedToLast:[last integerValue]];
+        }
     }
 
     return query;
