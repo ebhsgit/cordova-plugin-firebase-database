@@ -21,8 +21,8 @@
 
 - (void)set:(CDVInvokedUrlCommand *)command {
     NSString *path = [command argumentAtIndex:0 withDefault:@"/" andClass:[NSString class]];
-    FIRDatabaseReference *ref = [self.database referenceWithPath:path];
     id value = [command argumentAtIndex:1];
+    FIRDatabaseReference *ref = [self.database referenceWithPath:path];
 
     [ref setValue:value withCompletionBlock:^(NSError *error, FIRDatabaseReference *ref) {
         CDVPluginResult *pluginResult;
@@ -40,9 +40,9 @@
 }
 
 - (void)on:(CDVInvokedUrlCommand *)command {
-    FIRDataEventType type = [self stringToType:[command argumentAtIndex:0 withDefault:@"value" andClass:[NSString class]]];
-    NSString *path = [command argumentAtIndex:1 withDefault:@"/" andClass:[NSString class]];
-    FIRDatabaseReference *ref = [self.database.reference child:path];
+    NSString *path = [command argumentAtIndex:0 withDefault:@"/" andClass:[NSString class]];
+    FIRDataEventType type = [self stringToType:[command.arguments objectAtIndex:1]];
+    FIRDatabaseReference *ref = [self.database referenceWithPath:path];
 
     NSDictionary* orderBy = [command.arguments objectAtIndex:2];
     NSArray* includes = [command.arguments objectAtIndex:3];
@@ -75,10 +75,9 @@
 }
 
 - (void)off:(CDVInvokedUrlCommand *)command {
-    NSString *uid = [command.arguments objectAtIndex:0];
-    FIRDataEventType type = [self stringToType:[command argumentAtIndex:1 withDefault:@"value" andClass:[NSString class]]];
-    NSString *path = [command argumentAtIndex:2 withDefault:@"/" andClass:[NSString class]];
-    FIRDatabaseReference *ref = [self.database.reference child:path];
+    NSString *path = [command argumentAtIndex:0 withDefault:@"/" andClass:[NSString class]];
+    NSString *uid = [command.arguments objectAtIndex:1];
+    FIRDatabaseReference *ref = [self.database referenceWithPath:path];
 
     [ref removeObserverWithHandle:self.listeners[uid]];
     [self.listeners removeObjectForKey:uid];
@@ -88,16 +87,18 @@
 }
 
 - (FIRDatabaseQuery *)createQuery:(FIRDatabaseReference *)ref withOrderBy:(NSDictionary *)orderBy {
-    if ([orderBy objectForKey:@"key"]) {
-        return [ref queryOrderedByKey];
-    } else if ([orderBy objectForKey:@"value"]) {
-        return [ref queryOrderedByValue];
-    } else if ([orderBy objectForKey:@"priority"]) {
-        return [ref queryOrderedByPriority];
-    } else {
-        NSString* path = [orderBy objectForKey:@"child"];
-        if (path) {
-            return [ref queryOrderedByChild:path];
+    if ([orderBy class] != [NSNull class]) {
+        if ([orderBy objectForKey:@"key"]) {
+            return [ref queryOrderedByKey];
+        } else if ([orderBy objectForKey:@"value"]) {
+            return [ref queryOrderedByValue];
+        } else if ([orderBy objectForKey:@"priority"]) {
+            return [ref queryOrderedByPriority];
+        } else {
+            NSString* path = [orderBy objectForKey:@"child"];
+            if (path) {
+                return [ref queryOrderedByChild:path];
+            }
         }
     }
 

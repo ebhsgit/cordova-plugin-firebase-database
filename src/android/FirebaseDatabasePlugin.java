@@ -53,8 +53,8 @@ public class FirebaseDatabasePlugin extends CordovaPlugin {
     }
 
     private void on(JSONArray args, final CallbackContext callbackContext) throws JSONException {
-        final String type = args.getString(0);
-        final String path = args.getString(1);
+        final String path = args.getString(0);
+        final String type = args.getString(1);
         final Query query = createQuery(path, args.optJSONObject(2), args.optJSONArray(3), args.optJSONObject(4));
 
         final String uid = args.getString(5);
@@ -117,9 +117,8 @@ public class FirebaseDatabasePlugin extends CordovaPlugin {
     }
 
     private void off(JSONArray args, final CallbackContext callbackContext) throws JSONException {
-        final String uid = args.getString(0);
-        final String type = args.getString(1);
-        final String path = args.getString(2);
+        final String path = args.getString(0);
+        final String uid = args.getString(1);
 
         Query query = this.database.getReference(path);
         Object listener = listeners.get(uid);

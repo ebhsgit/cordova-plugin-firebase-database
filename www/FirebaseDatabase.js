@@ -55,7 +55,7 @@ DbQuery.prototype = {
         callback._id = utils.createUUID();
 
         exec(callback, error, PLUGIN_NAME, "on",
-            [eventType, ref._path, this._orderBy, this._includes, this._limit, callback._id]);
+            [ref._path, eventType, this._orderBy, this._includes, this._limit, callback._id]);
 
         return callback;
     },
@@ -66,7 +66,7 @@ DbQuery.prototype = {
             };
 
         exec(callback, error, PLUGIN_NAME, "on",
-            [eventType, ref._path, this._orderBy, this._includes, this._limit]);
+            [ref._path, eventType, this._orderBy, this._includes, this._limit]);
 
         return callback;
     },
@@ -74,7 +74,7 @@ DbQuery.prototype = {
         var ref = this.ref;
 
         exec(noop, noop, PLUGIN_NAME, "off",
-            [callback._id, eventType, ref._path]);
+            [ref._path, callback._id]);
     },
     orderByChild: function(path) {
         return new DbQuery(this.ref, {child: path});
