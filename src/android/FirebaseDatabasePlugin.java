@@ -58,7 +58,7 @@ public class FirebaseDatabasePlugin extends CordovaPlugin {
         final Query query = createQuery(path, args.optJSONObject(2), args.optJSONArray(3), args.optJSONObject(4));
 
         final String uid = args.getString(5);
-        final boolean keepCallback = uid != null;
+        final boolean keepCallback = uid != "null";
 
         if ("value".equals(type)) {
             ValueEventListener listener = new ValueEventListener() {
