@@ -17,6 +17,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.lang.reflect.Type;
+import java.util.Iterator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -43,14 +44,14 @@ public class FirebaseDatabasePlugin extends CordovaPlugin {
             on(args, callbackContext);
         } else if ("off".equals(action)) {
             off(args, callbackContext);
-        // } else if ("update".equals(action)) {
-        //     update(args, callbackContext);
         } else if ("set".equals(action)) {
             set(args, callbackContext);
+        } else if ("update".equals(action)) {
+            update(args, callbackContext);
+        } else if ("push".equals(action)) {
+            push(args, callbackContext);
         } else if ("setOnline".equals(action)) {
             setOnline(args.getBoolean(0), callbackContext);
-        // } else if ("push".equals(action)) {
-        //     push(args, callbackContext);
         } else {
             return false;
         }
@@ -177,6 +178,61 @@ public class FirebaseDatabasePlugin extends CordovaPlugin {
                     ref.setValue(value, listener);
                 } else {
                     ref.setValue(value, priority, listener);
+                }
+            }
+        });
+    }
+
+    private void update(JSONArray args, final CallbackContext callbackContext) throws JSONException {
+        final String path = args.getString(0);
+        final JSONObject value = args.optJSONObject(1);
+        final Map<String, Object> updates = new HashMap<String, Object>();
+        for (Iterator<String> it = value.keys(); it.hasNext(); ) {
+            String key = it.next();
+            updates.put(key, value.get(key));
+        }
+
+        cordova.getThreadPool().execute(new Runnable() {
+            @Override
+            public void run() {
+                DatabaseReference ref = database.getReference(path);
+
+                ref.updateChildren(updates, new DatabaseReference.CompletionListener() {
+                    @Override
+                    public void onComplete(DatabaseError error, DatabaseReference ref) {
+                        if (error != null) {
+                            callbackContext.error(error.getCode());
+                        } else {
+                            callbackContext.success();
+                        }
+                    }
+                });
+            }
+        });
+    }
+
+    private void push(JSONArray args, final CallbackContext callbackContext) throws JSONException {
+        final String path = args.getString(0);
+        final Object value = args.get(1);
+
+        cordova.getThreadPool().execute(new Runnable() {
+            @Override
+            public void run() {
+                final DatabaseReference ref = database.getReference(path).push();
+
+                if (value == null) {
+                    callbackContext.success(ref.getKey());
+                } else {
+                    ref.setValue(value, new DatabaseReference.CompletionListener() {
+                        @Override
+                        public void onComplete(DatabaseError error, DatabaseReference ref) {
+                            if (error != null) {
+                                callbackContext.error(error.getCode());
+                            } else {
+                                callbackContext.success(ref.getKey());
+                            }
+                        }
+                    });
                 }
             }
         });

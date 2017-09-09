@@ -109,6 +109,16 @@ DbRef.prototype.set = function(value, success, error) {
     exec(success, error, PLUGIN_NAME, "set", [this._path, value]);
 };
 
+DbRef.prototype.push = function(value, success, error) {
+    exec(function(path) {
+        success(new DbRef(path));
+    }, error, PLUGIN_NAME, "push", [this._path, value]);
+};
+
+DbRef.prototype.update = function(value, success, error) {
+    exec(success, error, PLUGIN_NAME, "update", [this._path, value]);
+};
+
 DbRef.prototype.setPriority = function(priority, success, error) {
     exec(success, error, PLUGIN_NAME, "set", [this._path, null, priority]);
 };
