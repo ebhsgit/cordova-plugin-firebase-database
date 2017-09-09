@@ -55,6 +55,7 @@
     query = [self limitQuery:query withCondition:limit];
 
     NSString *uid = [command.arguments objectAtIndex:5];
+    BOOL keepCallback = [uid length] > 0 ? YES : NO;
     id handler = ^(FIRDataSnapshot *_Nonnull snapshot) {
         dispatch_async(dispatch_get_main_queue(), ^{
             CDVPluginResult *pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:@{
@@ -62,12 +63,12 @@
                 @"value": snapshot.value,
                 @"priority": snapshot.priority
             }];
-            [pluginResult setKeepCallbackAsBool:(uid ? YES : NO)];
+            [pluginResult setKeepCallbackAsBool:keepCallback];
             [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
         });
     };
 
-    if (uid) {
+    if (keepCallback) {
         FIRDatabaseHandle handle = [query observeEventType:type withBlock:handler];
         [self.listeners setObject:@(handle) forKey:uid];
     } else {

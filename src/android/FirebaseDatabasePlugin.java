@@ -22,6 +22,12 @@ import java.util.List;
 import java.util.Map;
 
 public class FirebaseDatabasePlugin extends CordovaPlugin {
+    private final static String EVENT_TYPE_VALUE = "value";
+    private final static String EVENT_TYPE_CHILD_ADDED = "child_added";
+    private final static String EVENT_TYPE_CHILD_CHANGED = "child_changed";
+    private final static String EVENT_TYPE_CHILD_REMOVED = "child_removed";
+    private final static String EVENT_TYPE_CHILD_MOVED = "child_moved";
+
     private FirebaseDatabase database;
     private Map<String, Object> listeners;
 
@@ -52,110 +58,128 @@ public class FirebaseDatabasePlugin extends CordovaPlugin {
         return true;
     }
 
-    private void on(JSONArray args, final CallbackContext callbackContext) throws JSONException {
+    private void on(final JSONArray args, final CallbackContext callbackContext) throws JSONException {
         final String path = args.getString(0);
         final String type = args.getString(1);
-        final Query query = createQuery(path, args.optJSONObject(2), args.optJSONArray(3), args.optJSONObject(4));
-
         final String uid = args.getString(5);
-        final boolean keepCallback = uid != "null";
+        final boolean keepCallback = !uid.isEmpty();
 
-        if ("value".equals(type)) {
-            ValueEventListener listener = new ValueEventListener() {
-                @Override
-                public void onDataChange(DataSnapshot snapshot) {
-                    callbackContext.sendPluginResult(createPluginResult(snapshot, keepCallback));
+        cordova.getThreadPool().execute(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    Query query = createQuery(path, args.optJSONObject(2), args.optJSONArray(3), args.optJSONObject(4));
+
+                    if (EVENT_TYPE_VALUE.equals(type)) {
+                        ValueEventListener listener = new ValueEventListener() {
+                            @Override
+                            public void onDataChange(DataSnapshot snapshot) {
+                                callbackContext.sendPluginResult(createPluginResult(snapshot, keepCallback));
+                            }
+
+                            @Override
+                            public void onCancelled(DatabaseError databaseError) {
+                                callbackContext.error(databaseError.getCode());
+                            }
+                        };
+
+                        if (keepCallback) {
+                            listeners.put(uid, query.addValueEventListener(listener));
+                        } else {
+                            query.addListenerForSingleValueEvent(listener);
+                        }
+                    } else if (keepCallback) {
+                        listeners.put(uid, query.addChildEventListener(new ChildEventListener() {
+                            @Override
+                            public void onChildAdded(DataSnapshot snapshot, String previousChildName) {
+                                if (EVENT_TYPE_CHILD_ADDED.equals(type)) {
+                                    callbackContext.sendPluginResult(createPluginResult(snapshot, keepCallback));
+                                }
+                            }
+
+                            @Override
+                            public void onChildChanged(DataSnapshot snapshot, String previousChildName) {
+                                if (EVENT_TYPE_CHILD_CHANGED.equals(type)) {
+                                    callbackContext.sendPluginResult(createPluginResult(snapshot, keepCallback));
+                                }
+                            }
+
+                            @Override
+                            public void onChildRemoved(DataSnapshot snapshot) {
+                                if (EVENT_TYPE_CHILD_REMOVED.equals(type)) {
+                                    callbackContext.sendPluginResult(createPluginResult(snapshot, keepCallback));
+                                }
+                            }
+
+                            @Override
+                            public void onChildMoved(DataSnapshot snapshot, String previousChildName) {
+                                if (EVENT_TYPE_CHILD_MOVED.equals(type)) {
+                                    callbackContext.sendPluginResult(createPluginResult(snapshot, keepCallback));
+                                }
+                            }
+
+                            @Override
+                            public void onCancelled(DatabaseError databaseError) {
+                                callbackContext.error(databaseError.getCode());
+                            }
+                        }));
+                    }
+                } catch (JSONException e) {
+                    callbackContext.error(e.getMessage());
                 }
-
-                @Override
-                public void onCancelled(DatabaseError databaseError) {
-                    callbackContext.error(databaseError.getCode());
-                }
-            };
-
-            if (keepCallback) {
-                listeners.put(uid, query.addValueEventListener(listener));
-            } else {
-                query.addListenerForSingleValueEvent(listener);
             }
-        } else if (keepCallback) {
-            listeners.put(uid, query.addChildEventListener(new ChildEventListener() {
-                @Override
-                public void onChildAdded(DataSnapshot snapshot, String previousChildName) {
-                    if ("child_added".equals(type)) {
-                        callbackContext.sendPluginResult(createPluginResult(snapshot, keepCallback));
-                    }
-                }
-
-                @Override
-                public void onChildChanged(DataSnapshot snapshot, String previousChildName) {
-                    if ("child_changed".equals(type)) {
-                        callbackContext.sendPluginResult(createPluginResult(snapshot, keepCallback));
-                    }
-                }
-
-                @Override
-                public void onChildRemoved(DataSnapshot snapshot) {
-                    if ("child_removed".equals(type)) {
-                        callbackContext.sendPluginResult(createPluginResult(snapshot, keepCallback));
-                    }
-                }
-
-                @Override
-                public void onChildMoved(DataSnapshot snapshot, String previousChildName) {
-                    if ("child_moved".equals(type)) {
-                        callbackContext.sendPluginResult(createPluginResult(snapshot, keepCallback));
-                    }
-                }
-
-                @Override
-                public void onCancelled(DatabaseError databaseError) {
-                    callbackContext.error(databaseError.getCode());
-                }
-            }));
-        }
+        });
     }
 
     private void off(JSONArray args, final CallbackContext callbackContext) throws JSONException {
         final String path = args.getString(0);
         final String uid = args.getString(1);
 
-        Query query = this.database.getReference(path);
-        Object listener = listeners.get(uid);
-        if (listener instanceof ValueEventListener) {
-            query.removeEventListener((ValueEventListener)listener);
-        } else if (listener instanceof ChildEventListener) {
-            query.removeEventListener((ChildEventListener)listener);
-        } else {
-            throw new JSONException("listener is invalid");
-        }
+        cordova.getThreadPool().execute(new Runnable() {
+            @Override
+            public void run() {
+                Query query = database.getReference(path);
+                Object listener = listeners.get(uid);
+                if (listener instanceof ValueEventListener) {
+                    query.removeEventListener((ValueEventListener)listener);
+                } else if (listener instanceof ChildEventListener) {
+                    query.removeEventListener((ChildEventListener)listener);
+                }
 
-        callbackContext.success();
+                callbackContext.success();
+            }
+        });
     }
 
     private void set(JSONArray args, final CallbackContext callbackContext) throws JSONException {
-        Object value = args.get(1);
-        Object priority = args.get(2);
+        final String path = args.getString(0);
+        final Object value = args.get(1);
+        final Object priority = args.get(2);
 
-        DatabaseReference ref = this.database.getReference(args.getString(0));
-        DatabaseReference.CompletionListener listener = new DatabaseReference.CompletionListener() {
+        cordova.getThreadPool().execute(new Runnable() {
             @Override
-            public void onComplete(DatabaseError error, DatabaseReference ref) {
-                if (error != null) {
-                    callbackContext.error(error.getCode());
+            public void run() {
+                DatabaseReference ref = database.getReference(path);
+                DatabaseReference.CompletionListener listener = new DatabaseReference.CompletionListener() {
+                    @Override
+                    public void onComplete(DatabaseError error, DatabaseReference ref) {
+                        if (error != null) {
+                            callbackContext.error(error.getCode());
+                        } else {
+                            callbackContext.success();
+                        }
+                    }
+                };
+
+                if (value == null && priority == null) {
+                    ref.removeValue(listener);
+                } else if (priority == null) {
+                    ref.setValue(value, listener);
                 } else {
-                    callbackContext.success();
+                    ref.setValue(value, priority, listener);
                 }
             }
-        };
-
-        if (value == null && priority == null) {
-            ref.removeValue(listener);
-        } else if (priority == null) {
-            ref.setValue(value, listener);
-        } else {
-            ref.setValue(value, priority, listener);
-        }
+        });
     }
 
     private void setOnline(boolean enabled, CallbackContext callbackContext) {

@@ -66,7 +66,7 @@ DbQuery.prototype = {
             };
 
         exec(callback, error, PLUGIN_NAME, "on",
-            [ref._path, eventType, this._orderBy, this._includes, this._limit, null]);
+            [ref._path, eventType, this._orderBy, this._includes, this._limit, ""]);
 
         return callback;
     },
