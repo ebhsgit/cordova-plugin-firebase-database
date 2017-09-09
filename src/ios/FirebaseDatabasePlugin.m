@@ -40,6 +40,48 @@
     }];
 }
 
+- (void)update:(CDVInvokedUrlCommand *)command {
+    NSString *path = [command argumentAtIndex:0 withDefault:@"/" andClass:[NSString class]];
+    NSDictionary *values = [command argumentAtIndex:1 withDefault:@{} andClass:[NSDictionary class]];
+    FIRDatabaseReference *ref = [self.database referenceWithPath:path];
+
+    [ref updateChildValues:values withCompletionBlock:^(NSError *error, FIRDatabaseReference *ref) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            CDVPluginResult *pluginResult;
+            if (error) {
+                pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsDictionary:@{
+                        @"code": @(error.code),
+                        @"message": error.description
+                }];
+            } else {
+                pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:path];
+            }
+            [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+        });
+    }];
+}
+
+- (void)push:(CDVInvokedUrlCommand *)command {
+    NSString *path = [command argumentAtIndex:0 withDefault:@"/" andClass:[NSString class]];
+    id value = [command argumentAtIndex:1];
+    FIRDatabaseReference *ref = [self.database referenceWithPath:path];
+
+    [[ref childByAutoId] setValue:value withCompletionBlock:^(NSError *error, FIRDatabaseReference *ref) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            CDVPluginResult *pluginResult;
+            if (error) {
+                pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsDictionary:@{
+                        @"code": @(error.code),
+                        @"message": error.description
+                }];
+            } else {
+                pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:[NSString stringWithFormat:@"%@/%@", path, [ref key]]];
+            }
+            [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+        });
+    }];
+}
+
 - (void)on:(CDVInvokedUrlCommand *)command {
     NSString *path = [command argumentAtIndex:0 withDefault:@"/" andClass:[NSString class]];
     FIRDataEventType type = [self stringToType:[command.arguments objectAtIndex:1]];
