@@ -59,22 +59,19 @@ DbQuery.prototype = {
 
         return callback;
     },
-    once: function(eventType, success, error) {
-        var ref = this.ref;
-        var callback = function(data) {
-                success(new DbSnapshot(ref, data));
-            };
-
-        exec(callback, error, PLUGIN_NAME, "on",
-            [ref._path, eventType, this._orderBy, this._includes, this._limit, ""]);
-
-        return callback;
+    once: function(eventType) {
+        var args = [ref._path, eventType, this._orderBy, this._includes, this._limit, ""];
+        return new Promise(function(resolve, reject) {
+            exec(resolve, reject, PLUGIN_NAME, "on", args);
+        }).then(function(data) {
+            return new DbSnapshot(this.ref, data);
+        }.bind(this));
     },
     off: function(eventType, callback) {
-        var ref = this.ref;
-
-        exec(noop, noop, PLUGIN_NAME, "off",
-            [ref._path, callback._id]);
+        var args = [ref._path, callback._id];
+        return new Promise(function(resolve, reject) {
+            exec(resolve, reject, PLUGIN_NAME, "off", args);
+        });
     },
     orderByChild: function(path) {
         return new DbQuery(this.ref, {child: path});
@@ -101,40 +98,62 @@ DbRef.prototype.child = function(path) {
     return new DbRef(this._path.split("/").concat(path.split("/")).join("/"));
 };
 
-DbRef.prototype.remove = function(success, error) {
-    exec(success, error, PLUGIN_NAME, "set", [this._path]);
+DbRef.prototype.remove = function() {
+    var args = [this._path];
+    return new Promise(function(resolve, reject) {
+        exec(resolve, reject, PLUGIN_NAME, "set", args);
+    });
 };
 
-DbRef.prototype.set = function(value, success, error) {
-    exec(success, error, PLUGIN_NAME, "set", [this._path, value]);
+DbRef.prototype.set = function(value) {
+    var args = [this._path, value];
+    return new Promise(function(resolve, reject) {
+        exec(resolve, reject, PLUGIN_NAME, "set", args);
+    });
 };
 
-DbRef.prototype.push = function(value, success, error) {
-    exec(function(path) {
-        success(new DbRef(path));
-    }, error, PLUGIN_NAME, "push", [this._path, value]);
+DbRef.prototype.push = function(value) {
+    var args = [this._path, value];
+    return new Promise(function(resolve, reject) {
+        exec(resolve, reject, PLUGIN_NAME, "push", args);
+    }).then(function(path) {
+        return new DbRef(path);
+    });
 };
 
-DbRef.prototype.update = function(value, success, error) {
-    exec(success, error, PLUGIN_NAME, "update", [this._path, value]);
+DbRef.prototype.update = function(value) {
+    var args = [this._path, value];
+    return new Promise(function(resolve, reject) {
+        exec(resolve, reject, PLUGIN_NAME, "update", args);
+    });
 };
 
-DbRef.prototype.setPriority = function(priority, success, error) {
-    exec(success, error, PLUGIN_NAME, "set", [this._path, null, priority]);
+DbRef.prototype.setPriority = function(priority) {
+    var args = [this._path, null, priority];
+    return new Promise(function(resolve, reject) {
+        exec(resolve, reject, PLUGIN_NAME, "set", args);
+    });
 };
 
-DbRef.prototype.setWithPriority = function(value, priority, success, error) {
-    exec(success, error, PLUGIN_NAME, "set", [this._path, value, priority]);
+DbRef.prototype.setWithPriority = function(value, priority) {
+    var args = [this._path, value, priority];
+    return new Promise(function(resolve, reject) {
+        exec(resolve, reject, PLUGIN_NAME, "set", args);
+    });
 };
 
 module.exports = {
     ref: function(path) {
         return new DbRef(path);
     },
-    goOnline: function(success, error) {
-        exec(success, error, PLUGIN_NAME, "setOnline", [true]);
+    goOnline: function() {
+        return new Promise(function(resolve, reject) {
+            exec(resolve, reject, PLUGIN_NAME, "setOnline", [true]);
+        });
     },
-    goOffline: function(success, error) {
-        exec(success, error, PLUGIN_NAME, "setOnline", [false]);
+    goOffline: function() {
+        return new Promise(function(resolve, reject) {
+            exec(resolve, reject, PLUGIN_NAME, "setOnline", [false]);
+        });
     }
 };
