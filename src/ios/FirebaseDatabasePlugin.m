@@ -20,7 +20,7 @@
 }
 
 - (void)set:(CDVInvokedUrlCommand *)command {
-    NSString *path = [command argumentAtIndex:0 withDefault:@"/" andClass:[NSString class]];
+    NSString *path = [command argumentAtIndex:0];
     id value = [command argumentAtIndex:1];
     FIRDatabaseReference *ref = [self.database referenceWithPath:path];
 
@@ -62,7 +62,7 @@
 }
 
 - (void)push:(CDVInvokedUrlCommand *)command {
-    NSString *path = [command argumentAtIndex:0 withDefault:@"/" andClass:[NSString class]];
+    NSString *path = [command argumentAtIndex:0];
     id value = [command argumentAtIndex:1];
     FIRDatabaseReference *ref = [self.database referenceWithPath:path];
 
@@ -83,7 +83,7 @@
 }
 
 - (void)on:(CDVInvokedUrlCommand *)command {
-    NSString *path = [command argumentAtIndex:0 withDefault:@"/" andClass:[NSString class]];
+    NSString *path = [command argumentAtIndex:0];
     FIRDataEventType type = [self stringToType:[command.arguments objectAtIndex:1]];
     FIRDatabaseReference *ref = [self.database referenceWithPath:path];
 
@@ -119,7 +119,7 @@
 }
 
 - (void)off:(CDVInvokedUrlCommand *)command {
-    NSString *path = [command argumentAtIndex:0 withDefault:@"/" andClass:[NSString class]];
+    NSString *path = [command argumentAtIndex:0];
     NSString *uid = [command.arguments objectAtIndex:1];
     FIRDatabaseReference *ref = [self.database referenceWithPath:path];
     id handlePtr = [self.listeners objectForKey:uid];
@@ -195,6 +195,8 @@
         return FIRDataEventTypeChildChanged;
     } else if ([type isEqualToString:@"child_moved"]) {
         return FIRDataEventTypeChildMoved;
+    } else {
+        return NULL;
     }
 }
 

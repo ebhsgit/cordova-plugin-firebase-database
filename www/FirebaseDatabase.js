@@ -60,15 +60,16 @@ DbQuery.prototype = {
         return callback;
     },
     once: function(eventType) {
+        var ref = this.ref;
         var args = [ref._path, eventType, this._orderBy, this._includes, this._limit, ""];
         return new Promise(function(resolve, reject) {
             exec(resolve, reject, PLUGIN_NAME, "on", args);
         }).then(function(data) {
-            return new DbSnapshot(this.ref, data);
-        }.bind(this));
+            return new DbSnapshot(ref, data);
+        });
     },
     off: function(eventType, callback) {
-        var args = [ref._path, callback._id];
+        var args = [this.ref._path, callback._id];
         return new Promise(function(resolve, reject) {
             exec(resolve, reject, PLUGIN_NAME, "off", args);
         });
@@ -89,7 +90,7 @@ DbQuery.prototype = {
 
 function DbRef(path) {
     this.ref = this;
-    this._path = path;
+    this._path = path || "/";
 }
 
 DbRef.prototype = new DbQuery();
