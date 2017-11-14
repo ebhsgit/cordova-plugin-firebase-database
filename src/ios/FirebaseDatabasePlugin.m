@@ -153,16 +153,13 @@
 - (FIRDatabaseQuery *)filterQuery:(FIRDatabaseQuery *)query withCondition:(NSDictionary *)condition {
     if ([condition class] != [NSNull class]) {
         NSString* childKey = [condition objectForKey:@"key"];
-        id endAt = [condition objectForKey:@"endAt"];
-        id startAt = [condition objectForKey:@"startAt"];
-        id equalTo = [condition objectForKey:@"equalTo"];
 
-        if (startAt) {
-            return [query queryStartingAtValue:startAt childKey:childKey];
-        } else if (endAt) {
-            return [query queryEndingAtValue:endAt childKey:childKey];
-        } else if (equalTo) {
-            return [query queryEqualToValue:equalTo childKey:childKey];
+        if (condition[@"startAt"]) {
+            return [query queryStartingAtValue:condition[@"startAt"] childKey:childKey];
+        } else if (condition[@"endAt"]) {
+            return [query queryEndingAtValue:condition[@"endAt"] childKey:childKey];
+        } else if (condition[@"equalTo"]) {
+            return [query queryEqualToValue:condition[@"equalTo"] childKey:childKey];
         } // else throw error?
     }
 
