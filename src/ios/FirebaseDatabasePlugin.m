@@ -9,7 +9,7 @@
     self.listeners = [NSMutableDictionary dictionary];
 }
 
-- (FIRDatabase *)getDb:(NSString* url) {
+- (FIRDatabase *)getDb:(NSString *)url {
     if (url) {
         return [FIRDatabase databaseWithURL:url];
     } else {

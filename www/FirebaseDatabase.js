@@ -168,4 +168,6 @@ DbInstance.prototype = {
     }
 };
 
-module.exports = DbInstance;
+module.exports = function(url) {
+    return new DbInstance(url);
+};

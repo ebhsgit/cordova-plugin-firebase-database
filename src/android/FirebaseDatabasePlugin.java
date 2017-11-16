@@ -241,7 +241,7 @@ public class FirebaseDatabasePlugin extends CordovaPlugin {
         });
     }
 
-    private void setOnline(final String url, final boolean enabled, CallbackContext callbackContext) {
+    private void setOnline(final String url, final boolean enabled, final CallbackContext callbackContext) {
         cordova.getThreadPool().execute(new Runnable() {
             @Override
             public void run() {
