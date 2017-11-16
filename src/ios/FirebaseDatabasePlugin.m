@@ -1,28 +1,40 @@
 #import "FirebaseDatabasePlugin.h"
+@import Firebase;
 
 @implementation FirebaseDatabasePlugin
 
 - (void)pluginInitialize {
     NSLog(@"Starting Firebase Database plugin");
 
-    self.database = [FIRDatabase database];
     self.listeners = [NSMutableDictionary dictionary];
 }
 
+- (FIRDatabase *)getDb:(NSString* url) {
+    if (url) {
+        return [FIRDatabase databaseWithURL:url];
+    } else {
+        return [FIRDatabase database];
+    }
+}
+
 - (void)setOnline:(CDVInvokedUrlCommand *)command {
-    BOOL enabled = [[command argumentAtIndex:0] boolValue];
+    NSString *url = [command argumentAtIndex:0];
+    FIRDatabase* database = [self getDb:url];
+    BOOL enabled = [[command argumentAtIndex:1] boolValue];
 
     if (enabled) {
-        [self.database goOnline];
+        [database goOnline];
     } else {
-        [self.database goOffline];
+        [database goOffline];
     }
 }
 
 - (void)set:(CDVInvokedUrlCommand *)command {
-    NSString *path = [command argumentAtIndex:0];
-    id value = [command argumentAtIndex:1];
-    FIRDatabaseReference *ref = [self.database referenceWithPath:path];
+    NSString *url = [command argumentAtIndex:0];
+    FIRDatabase* database = [self getDb:url];
+    NSString *path = [command argumentAtIndex:1];
+    id value = [command argumentAtIndex:2];
+    FIRDatabaseReference *ref = [database referenceWithPath:path];
 
     [ref setValue:value withCompletionBlock:^(NSError *error, FIRDatabaseReference *ref) {
         dispatch_async(dispatch_get_main_queue(), ^{
@@ -41,9 +53,11 @@
 }
 
 - (void)update:(CDVInvokedUrlCommand *)command {
-    NSString *path = [command argumentAtIndex:0 withDefault:@"/" andClass:[NSString class]];
-    NSDictionary *values = [command argumentAtIndex:1 withDefault:@{} andClass:[NSDictionary class]];
-    FIRDatabaseReference *ref = [self.database referenceWithPath:path];
+    NSString *url = [command argumentAtIndex:0];
+    FIRDatabase* database = [self getDb:url];
+    NSString *path = [command argumentAtIndex:1];
+    NSDictionary *values = [command argumentAtIndex:2 withDefault:@{} andClass:[NSDictionary class]];
+    FIRDatabaseReference *ref = [database referenceWithPath:path];
 
     [ref updateChildValues:values withCompletionBlock:^(NSError *error, FIRDatabaseReference *ref) {
         dispatch_async(dispatch_get_main_queue(), ^{
@@ -62,9 +76,11 @@
 }
 
 - (void)push:(CDVInvokedUrlCommand *)command {
-    NSString *path = [command argumentAtIndex:0];
-    id value = [command argumentAtIndex:1];
-    FIRDatabaseReference *ref = [self.database referenceWithPath:path];
+    NSString *url = [command argumentAtIndex:0];
+    FIRDatabase* database = [self getDb:url];
+    NSString *path = [command argumentAtIndex:1];
+    id value = [command argumentAtIndex:2];
+    FIRDatabaseReference *ref = [database referenceWithPath:path];
 
     [[ref childByAutoId] setValue:value withCompletionBlock:^(NSError *error, FIRDatabaseReference *ref) {
         dispatch_async(dispatch_get_main_queue(), ^{
@@ -83,20 +99,22 @@
 }
 
 - (void)on:(CDVInvokedUrlCommand *)command {
-    NSString *path = [command argumentAtIndex:0];
-    FIRDataEventType type = [self stringToType:[command.arguments objectAtIndex:1]];
-    FIRDatabaseReference *ref = [self.database referenceWithPath:path];
+    NSString *url = [command argumentAtIndex:0];
+    FIRDatabase* database = [self getDb:url];
+    NSString *path = [command argumentAtIndex:1];
+    FIRDataEventType type = [self stringToType:[command.arguments objectAtIndex:2]];
+    FIRDatabaseReference *ref = [database referenceWithPath:path];
 
-    NSDictionary* orderBy = [command.arguments objectAtIndex:2];
-    NSArray* includes = [command.arguments objectAtIndex:3];
-    NSDictionary* limit = [command.arguments objectAtIndex:4];
+    NSDictionary* orderBy = [command.arguments objectAtIndex:3];
+    NSArray* includes = [command.arguments objectAtIndex:4];
+    NSDictionary* limit = [command.arguments objectAtIndex:5];
     FIRDatabaseQuery *query = [self createQuery:ref withOrderBy:orderBy];
     for (NSDictionary* condition in includes) {
         query = [self filterQuery:query withCondition:condition];
     }
     query = [self limitQuery:query withCondition:limit];
 
-    NSString *uid = [command.arguments objectAtIndex:5];
+    NSString *uid = [command.arguments objectAtIndex:6];
     BOOL keepCallback = [uid length] > 0 ? YES : NO;
     id handler = ^(FIRDataSnapshot *_Nonnull snapshot) {
         dispatch_async(dispatch_get_main_queue(), ^{
@@ -119,9 +137,11 @@
 }
 
 - (void)off:(CDVInvokedUrlCommand *)command {
-    NSString *path = [command argumentAtIndex:0];
-    NSString *uid = [command.arguments objectAtIndex:1];
-    FIRDatabaseReference *ref = [self.database referenceWithPath:path];
+    NSString *url = [command argumentAtIndex:0];
+    FIRDatabase* database = [self getDb:url];
+    NSString *path = [command argumentAtIndex:1];
+    NSString *uid = [command.arguments objectAtIndex:2];
+    FIRDatabaseReference *ref = [database referenceWithPath:path];
     id handlePtr = [self.listeners objectForKey:uid];
     // dereference handlePtr to get FIRDatabaseHandle value
     [ref removeObserverWithHandle:[handlePtr intValue]];

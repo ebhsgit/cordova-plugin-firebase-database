@@ -55,13 +55,14 @@ DbQuery.prototype = {
         callback._id = utils.createUUID();
 
         exec(callback, error, PLUGIN_NAME, "on",
-            [ref._path, eventType, this._orderBy, this._includes, this._limit, callback._id]);
+            [ref._url, ref._path, eventType, this._orderBy, this._includes, this._limit, callback._id]);
 
         return callback;
     },
     once: function(eventType) {
         var ref = this.ref;
-        var args = [ref._path, eventType, this._orderBy, this._includes, this._limit, ""];
+        var args = [ref._url, ref._path,
+            eventType, this._orderBy, this._includes, this._limit, ""];
         return new Promise(function(resolve, reject) {
             exec(resolve, reject, PLUGIN_NAME, "on", args);
         }).then(function(data) {
@@ -69,7 +70,8 @@ DbQuery.prototype = {
         });
     },
     off: function(eventType, callback) {
-        var args = [this.ref._path, callback._id];
+        var ref = this.ref;
+        var args = [ref._url, ref._path, callback._id];
         return new Promise(function(resolve, reject) {
             exec(resolve, reject, PLUGIN_NAME, "off", args);
         });
@@ -88,73 +90,82 @@ DbQuery.prototype = {
     }
 };
 
-function DbRef(path) {
+function DbRef(path, url) {
     this.ref = this;
     this._path = path || "/";
+    this._url = url || null;
 }
 
 DbRef.prototype = new DbQuery();
 
 DbRef.prototype.child = function(path) {
-    return new DbRef(this._path.split("/").concat(path.split("/")).join("/"));
+    path = this._path.split("/").concat(path.split("/")).join("/");
+
+    return new DbRef(path, this._url);
 };
 
 DbRef.prototype.remove = function() {
-    var args = [this._path];
+    var args = [this._url, this._path];
     return new Promise(function(resolve, reject) {
         exec(resolve, reject, PLUGIN_NAME, "set", args);
     });
 };
 
 DbRef.prototype.set = function(value) {
-    var args = [this._path, value];
+    var args = [this._url, this._path, value];
     return new Promise(function(resolve, reject) {
         exec(resolve, reject, PLUGIN_NAME, "set", args);
     });
 };
 
 DbRef.prototype.push = function(value) {
-    var args = [this._path, value];
+    var args = [this._url, this._path, value];
     return new Promise(function(resolve, reject) {
         exec(resolve, reject, PLUGIN_NAME, "push", args);
     }).then(function(path) {
-        return new DbRef(path);
+        return new DbRef(path, db);
     });
 };
 
 DbRef.prototype.update = function(value) {
-    var args = [this._path, value];
+    var args = [this._url, this._path, value];
     return new Promise(function(resolve, reject) {
         exec(resolve, reject, PLUGIN_NAME, "update", args);
     });
 };
 
 DbRef.prototype.setPriority = function(priority) {
-    var args = [this._path, null, priority];
+    var args = [this._url, this._path, null, priority];
     return new Promise(function(resolve, reject) {
         exec(resolve, reject, PLUGIN_NAME, "set", args);
     });
 };
 
 DbRef.prototype.setWithPriority = function(value, priority) {
-    var args = [this._path, value, priority];
+    var args = [this._url, this._path, value, priority];
     return new Promise(function(resolve, reject) {
         exec(resolve, reject, PLUGIN_NAME, "set", args);
     });
 };
 
-module.exports = {
+function DbInstance(url) {
+    this._url = url || "";
+}
+
+DbInstance.prototype = {
     ref: function(path) {
-        return new DbRef(path);
+        return new DbRef(path, this._url);
     },
     goOnline: function() {
         return new Promise(function(resolve, reject) {
-            exec(resolve, reject, PLUGIN_NAME, "setOnline", [true]);
+            exec(resolve, reject, PLUGIN_NAME, "setOnline", [this._url, true]);
         });
     },
     goOffline: function() {
         return new Promise(function(resolve, reject) {
-            exec(resolve, reject, PLUGIN_NAME, "setOnline", [false]);
+            exec(resolve, reject, PLUGIN_NAME, "setOnline", [this._url, false]);
         });
     }
 };
+
+module.exports = DbInstance;

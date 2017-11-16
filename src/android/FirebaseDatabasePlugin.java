@@ -29,12 +29,10 @@ public class FirebaseDatabasePlugin extends CordovaPlugin {
     private final static String EVENT_TYPE_CHILD_REMOVED = "child_removed";
     private final static String EVENT_TYPE_CHILD_MOVED = "child_moved";
 
-    private FirebaseDatabase database;
     private Map<String, Object> listeners;
 
     @Override
     protected void pluginInitialize() {
-        this.database = FirebaseDatabase.getInstance();
         this.listeners = new HashMap<String, Object>();
     }
 
@@ -51,7 +49,7 @@ public class FirebaseDatabasePlugin extends CordovaPlugin {
         } else if ("push".equals(action)) {
             push(args, callbackContext);
         } else if ("setOnline".equals(action)) {
-            setOnline(args.getBoolean(0), callbackContext);
+            setOnline(args.getString(0), args.getBoolean(1), callbackContext);
         } else {
             return false;
         }
@@ -60,16 +58,17 @@ public class FirebaseDatabasePlugin extends CordovaPlugin {
     }
 
     private void on(final JSONArray args, final CallbackContext callbackContext) throws JSONException {
-        final String path = args.getString(0);
-        final String type = args.getString(1);
-        final String uid = args.getString(5);
+        final String url = args.getString(0);
+        final String path = args.getString(1);
+        final String type = args.getString(2);
+        final String uid = args.getString(6);
         final boolean keepCallback = !uid.isEmpty();
 
         cordova.getThreadPool().execute(new Runnable() {
             @Override
             public void run() {
                 try {
-                    Query query = createQuery(path, args.optJSONObject(2), args.optJSONArray(3), args.optJSONObject(4));
+                    Query query = createQuery(url, path, args.optJSONObject(3), args.optJSONArray(4), args.optJSONObject(5));
 
                     if (EVENT_TYPE_VALUE.equals(type)) {
                         ValueEventListener listener = new ValueEventListener() {
@@ -133,13 +132,14 @@ public class FirebaseDatabasePlugin extends CordovaPlugin {
     }
 
     private void off(JSONArray args, final CallbackContext callbackContext) throws JSONException {
-        final String path = args.getString(0);
-        final String uid = args.getString(1);
+        final String url = args.getString(0);
+        final String path = args.getString(1);
+        final String uid = args.getString(2);
 
         cordova.getThreadPool().execute(new Runnable() {
             @Override
             public void run() {
-                Query query = database.getReference(path);
+                Query query = getDb(url).getReference(path);
                 Object listener = listeners.get(uid);
                 if (listener instanceof ValueEventListener) {
                     query.removeEventListener((ValueEventListener)listener);
@@ -153,14 +153,15 @@ public class FirebaseDatabasePlugin extends CordovaPlugin {
     }
 
     private void set(JSONArray args, final CallbackContext callbackContext) throws JSONException {
-        final String path = args.getString(0);
-        final Object value = args.get(1);
-        final Object priority = args.get(2);
+        final String url = args.getString(0);
+        final String path = args.getString(1);
+        final Object value = args.get(2);
+        final Object priority = args.get(3);
 
         cordova.getThreadPool().execute(new Runnable() {
             @Override
             public void run() {
-                DatabaseReference ref = database.getReference(path);
+                DatabaseReference ref = getDb(url).getReference(path);
                 DatabaseReference.CompletionListener listener = new DatabaseReference.CompletionListener() {
                     @Override
                     public void onComplete(DatabaseError error, DatabaseReference ref) {
@@ -184,8 +185,9 @@ public class FirebaseDatabasePlugin extends CordovaPlugin {
     }
 
     private void update(JSONArray args, final CallbackContext callbackContext) throws JSONException {
-        final String path = args.getString(0);
-        final JSONObject value = args.optJSONObject(1);
+        final String url = args.getString(0);
+        final String path = args.getString(1);
+        final JSONObject value = args.optJSONObject(2);
         final Map<String, Object> updates = new HashMap<String, Object>();
         for (Iterator<String> it = value.keys(); it.hasNext(); ) {
             String key = it.next();
@@ -195,7 +197,7 @@ public class FirebaseDatabasePlugin extends CordovaPlugin {
         cordova.getThreadPool().execute(new Runnable() {
             @Override
             public void run() {
-                DatabaseReference ref = database.getReference(path);
+                DatabaseReference ref = getDb(url).getReference(path);
 
                 ref.updateChildren(updates, new DatabaseReference.CompletionListener() {
                     @Override
@@ -212,13 +214,14 @@ public class FirebaseDatabasePlugin extends CordovaPlugin {
     }
 
     private void push(JSONArray args, final CallbackContext callbackContext) throws JSONException {
-        final String path = args.getString(0);
-        final Object value = args.get(1);
+        final String url = args.getString(0);
+        final String path = args.getString(1);
+        final Object value = args.get(2);
 
         cordova.getThreadPool().execute(new Runnable() {
             @Override
             public void run() {
-                final DatabaseReference ref = database.getReference(path).push();
+                final DatabaseReference ref = getDb(url).getReference(path).push();
 
                 if (value == null) {
                     callbackContext.success(ref.getKey());
@@ -238,18 +241,23 @@ public class FirebaseDatabasePlugin extends CordovaPlugin {
         });
     }
 
-    private void setOnline(boolean enabled, CallbackContext callbackContext) {
-        if (enabled) {
-            database.goOnline();
-        } else {
-            database.goOffline();
-        }
+    private void setOnline(final String url, final boolean enabled, CallbackContext callbackContext) {
+        cordova.getThreadPool().execute(new Runnable() {
+            @Override
+            public void run() {
+                if (enabled) {
+                    getDb(url).goOnline();
+                } else {
+                    getDb(url).goOffline();
+                }
 
-        callbackContext.success();
+                callbackContext.success();
+            }
+        });
     }
 
-    private Query createQuery(String path, JSONObject orderBy, JSONArray includes, JSONObject limit) throws JSONException {
-        Query query = this.database.getReference(path);
+    private Query createQuery(String url, String path, JSONObject orderBy, JSONArray includes, JSONObject limit) throws JSONException {
+        Query query = getDb(url).getReference(path);
 
         if (orderBy != null) {
             if (orderBy.has("key")) {
@@ -311,6 +319,14 @@ public class FirebaseDatabasePlugin extends CordovaPlugin {
         }
 
         return query;
+    }
+
+    private static FirebaseDatabase getDb(String url) {
+        if (url != null) {
+            return FirebaseDatabase.getInstance(url);
+        } else {
+            return FirebaseDatabase.getInstance();
+        }
     }
 
     private static PluginResult createPluginResult(DataSnapshot dataSnapshot, boolean keepCallback) {

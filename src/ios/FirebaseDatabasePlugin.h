@@ -1,5 +1,4 @@
 #import <Cordova/CDV.h>
-@import FirebaseDatabase;
 
 @interface FirebaseDatabasePlugin : CDVPlugin
 
@@ -10,7 +9,6 @@
 - (void)update:(CDVInvokedUrlCommand *)command;
 - (void)setOnline:(CDVInvokedUrlCommand *)command;
 
-@property(strong) FIRDatabase *database;
 @property(strong) NSMutableDictionary *listeners;
 
 @end
