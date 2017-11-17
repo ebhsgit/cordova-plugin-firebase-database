@@ -93,7 +93,7 @@ DbQuery.prototype = {
 function DbRef(path, url) {
     this.ref = this;
     this._path = path || "/";
-    this._url = url || null;
+    this._url = url || "";
 }
 
 DbRef.prototype = new DbQuery();
@@ -157,13 +157,15 @@ DbInstance.prototype = {
         return new DbRef(path, this._url);
     },
     goOnline: function() {
+        var args = [this._url, true];
         return new Promise(function(resolve, reject) {
-            exec(resolve, reject, PLUGIN_NAME, "setOnline", [this._url, true]);
+            exec(resolve, reject, PLUGIN_NAME, "setOnline", args);
         });
     },
     goOffline: function() {
+        var args = [this._url, false];
         return new Promise(function(resolve, reject) {
-            exec(resolve, reject, PLUGIN_NAME, "setOnline", [this._url, false]);
+            exec(resolve, reject, PLUGIN_NAME, "setOnline", args);
         });
     }
 };

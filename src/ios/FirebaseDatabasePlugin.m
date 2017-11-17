@@ -10,10 +10,10 @@
 }
 
 - (FIRDatabase *)getDb:(NSString *)url {
-    if (url) {
-        return [FIRDatabase databaseWithURL:url];
-    } else {
+    if ([url length] == 0) {
         return [FIRDatabase database];
+    } else {
+        return [FIRDatabase databaseWithURL:url];
     }
 }
 

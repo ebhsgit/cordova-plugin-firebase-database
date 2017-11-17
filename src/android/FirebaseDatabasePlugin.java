@@ -49,7 +49,7 @@ public class FirebaseDatabasePlugin extends CordovaPlugin {
         } else if ("push".equals(action)) {
             push(args, callbackContext);
         } else if ("setOnline".equals(action)) {
-            setOnline(args.getString(0), args.getBoolean(1), callbackContext);
+            setOnline(args.optString(0), args.getBoolean(1), callbackContext);
         } else {
             return false;
         }
@@ -58,7 +58,7 @@ public class FirebaseDatabasePlugin extends CordovaPlugin {
     }
 
     private void on(final JSONArray args, final CallbackContext callbackContext) throws JSONException {
-        final String url = args.getString(0);
+        final String url = args.optString(0);
         final String path = args.getString(1);
         final String type = args.getString(2);
         final String uid = args.getString(6);
@@ -132,7 +132,7 @@ public class FirebaseDatabasePlugin extends CordovaPlugin {
     }
 
     private void off(JSONArray args, final CallbackContext callbackContext) throws JSONException {
-        final String url = args.getString(0);
+        final String url = args.optString(0);
         final String path = args.getString(1);
         final String uid = args.getString(2);
 
@@ -153,7 +153,7 @@ public class FirebaseDatabasePlugin extends CordovaPlugin {
     }
 
     private void set(JSONArray args, final CallbackContext callbackContext) throws JSONException {
-        final String url = args.getString(0);
+        final String url = args.optString(0);
         final String path = args.getString(1);
         final Object value = args.get(2);
         final Object priority = args.get(3);
@@ -185,7 +185,7 @@ public class FirebaseDatabasePlugin extends CordovaPlugin {
     }
 
     private void update(JSONArray args, final CallbackContext callbackContext) throws JSONException {
-        final String url = args.getString(0);
+        final String url = args.optString(0);
         final String path = args.getString(1);
         final JSONObject value = args.optJSONObject(2);
         final Map<String, Object> updates = new HashMap<String, Object>();
@@ -214,7 +214,7 @@ public class FirebaseDatabasePlugin extends CordovaPlugin {
     }
 
     private void push(JSONArray args, final CallbackContext callbackContext) throws JSONException {
-        final String url = args.getString(0);
+        final String url = args.optString(0);
         final String path = args.getString(1);
         final Object value = args.get(2);
 
@@ -322,10 +322,10 @@ public class FirebaseDatabasePlugin extends CordovaPlugin {
     }
 
     private static FirebaseDatabase getDb(String url) {
-        if (url != null) {
-            return FirebaseDatabase.getInstance(url);
-        } else {
+        if (url.isEmpty()) {
             return FirebaseDatabase.getInstance();
+        } else {
+            return FirebaseDatabase.getInstance(url);
         }
     }
 
