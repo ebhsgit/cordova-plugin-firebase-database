@@ -64,71 +64,62 @@ public class FirebaseDatabasePlugin extends CordovaPlugin {
         final String uid = args.getString(6);
         final boolean keepCallback = !uid.isEmpty();
 
-        cordova.getThreadPool().execute(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    Query query = createQuery(url, path, args.optJSONObject(3), args.optJSONArray(4), args.optJSONObject(5));
+        Query query = createQuery(url, path, args.optJSONObject(3), args.optJSONArray(4), args.optJSONObject(5));
 
-                    if (EVENT_TYPE_VALUE.equals(type)) {
-                        ValueEventListener listener = new ValueEventListener() {
-                            @Override
-                            public void onDataChange(DataSnapshot snapshot) {
-                                callbackContext.sendPluginResult(createPluginResult(snapshot, keepCallback));
-                            }
-
-                            @Override
-                            public void onCancelled(DatabaseError databaseError) {
-                                callbackContext.error(databaseError.getCode());
-                            }
-                        };
-
-                        if (keepCallback) {
-                            listeners.put(uid, query.addValueEventListener(listener));
-                        } else {
-                            query.addListenerForSingleValueEvent(listener);
-                        }
-                    } else if (keepCallback) {
-                        listeners.put(uid, query.addChildEventListener(new ChildEventListener() {
-                            @Override
-                            public void onChildAdded(DataSnapshot snapshot, String previousChildName) {
-                                if (EVENT_TYPE_CHILD_ADDED.equals(type)) {
-                                    callbackContext.sendPluginResult(createPluginResult(snapshot, keepCallback));
-                                }
-                            }
-
-                            @Override
-                            public void onChildChanged(DataSnapshot snapshot, String previousChildName) {
-                                if (EVENT_TYPE_CHILD_CHANGED.equals(type)) {
-                                    callbackContext.sendPluginResult(createPluginResult(snapshot, keepCallback));
-                                }
-                            }
-
-                            @Override
-                            public void onChildRemoved(DataSnapshot snapshot) {
-                                if (EVENT_TYPE_CHILD_REMOVED.equals(type)) {
-                                    callbackContext.sendPluginResult(createPluginResult(snapshot, keepCallback));
-                                }
-                            }
-
-                            @Override
-                            public void onChildMoved(DataSnapshot snapshot, String previousChildName) {
-                                if (EVENT_TYPE_CHILD_MOVED.equals(type)) {
-                                    callbackContext.sendPluginResult(createPluginResult(snapshot, keepCallback));
-                                }
-                            }
-
-                            @Override
-                            public void onCancelled(DatabaseError databaseError) {
-                                callbackContext.error(databaseError.getCode());
-                            }
-                        }));
-                    }
-                } catch (JSONException e) {
-                    callbackContext.error(e.getMessage());
+        if (EVENT_TYPE_VALUE.equals(type)) {
+            ValueEventListener listener = new ValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot snapshot) {
+                    callbackContext.sendPluginResult(createPluginResult(snapshot, keepCallback));
                 }
+
+                @Override
+                public void onCancelled(DatabaseError databaseError) {
+                    callbackContext.error(databaseError.getCode());
+                }
+            };
+
+            if (keepCallback) {
+                listeners.put(uid, query.addValueEventListener(listener));
+            } else {
+                query.addListenerForSingleValueEvent(listener);
             }
-        });
+        } else if (keepCallback) {
+            listeners.put(uid, query.addChildEventListener(new ChildEventListener() {
+                @Override
+                public void onChildAdded(DataSnapshot snapshot, String previousChildName) {
+                    if (EVENT_TYPE_CHILD_ADDED.equals(type)) {
+                        callbackContext.sendPluginResult(createPluginResult(snapshot, keepCallback));
+                    }
+                }
+
+                @Override
+                public void onChildChanged(DataSnapshot snapshot, String previousChildName) {
+                    if (EVENT_TYPE_CHILD_CHANGED.equals(type)) {
+                        callbackContext.sendPluginResult(createPluginResult(snapshot, keepCallback));
+                    }
+                }
+
+                @Override
+                public void onChildRemoved(DataSnapshot snapshot) {
+                    if (EVENT_TYPE_CHILD_REMOVED.equals(type)) {
+                        callbackContext.sendPluginResult(createPluginResult(snapshot, keepCallback));
+                    }
+                }
+
+                @Override
+                public void onChildMoved(DataSnapshot snapshot, String previousChildName) {
+                    if (EVENT_TYPE_CHILD_MOVED.equals(type)) {
+                        callbackContext.sendPluginResult(createPluginResult(snapshot, keepCallback));
+                    }
+                }
+
+                @Override
+                public void onCancelled(DatabaseError databaseError) {
+                    callbackContext.error(databaseError.getCode());
+                }
+            }));
+        }
     }
 
     private void off(JSONArray args, final CallbackContext callbackContext) throws JSONException {
