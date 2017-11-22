@@ -8,6 +8,8 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Logger;
 import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 
 import org.apache.cordova.CallbackContext;
 import org.apache.cordova.CordovaPlugin;
@@ -197,9 +199,9 @@ public class FirebaseDatabasePlugin extends CordovaPlugin {
                 if (value == null && priority == null) {
                     ref.removeValue(listener);
                 } else if (priority == null) {
-                    ref.setValue(value, listener);
+                    ref.setValue(toSettable(value), listener);
                 } else {
-                    ref.setValue(value, priority, listener);
+                    ref.setValue(toSettable(value), priority, listener);
                 }
             }
         });
@@ -212,7 +214,7 @@ public class FirebaseDatabasePlugin extends CordovaPlugin {
         final Map<String, Object> updates = new HashMap<String, Object>();
         for (Iterator<String> it = value.keys(); it.hasNext(); ) {
             String key = it.next();
-            updates.put(key, value.get(key));
+            updates.put(key, toSettable(value.get(key)));
         }
 
         cordova.getThreadPool().execute(new Runnable() {
@@ -247,7 +249,7 @@ public class FirebaseDatabasePlugin extends CordovaPlugin {
                 if (value == null) {
                     callbackContext.success(ref.getKey());
                 } else {
-                    ref.setValue(value, new DatabaseReference.CompletionListener() {
+                    ref.setValue(toSettable(value), new DatabaseReference.CompletionListener() {
                         @Override
                         public void onComplete(DatabaseError error, DatabaseReference ref) {
                             if (error != null) {
@@ -357,9 +359,9 @@ public class FirebaseDatabasePlugin extends CordovaPlugin {
             data.put("priority", dataSnapshot.getPriority());
             data.put("key", dataSnapshot.getKey());
             if (value instanceof Map) {
-                value = toJSON((Map<String, Object>)value);
+                value = new JSONObject(new Gson().toJson(value));
             } else if (value instanceof List) {
-                value = new JSONArray((List)value);
+                value = new JSONArray(new Gson().toJson(value));
             }
             data.put("value", value);
         } catch (JSONException e) {}
@@ -369,17 +371,14 @@ public class FirebaseDatabasePlugin extends CordovaPlugin {
         return pluginResult;
     }
 
-    private static JSONObject toJSON(Map<String, Object> values) throws JSONException {
-        JSONObject result = new JSONObject();
-        for (Map.Entry<String, Object> entry : values.entrySet()) {
-            Object value = entry.getValue();
-            if (value instanceof Map) {
-                value = new JSONObject((Map)value);
-            } else if (value instanceof List) {
-                value = new JSONArray((List)value);
-            }
-            result.put(entry.getKey(), value);
+    private static Object toSettable(Object value) {
+        Object result = value;
+
+        if (value instanceof JSONObject) {
+            Type type = new TypeToken<Map<String, Object>>() {}.getType();
+            result = new Gson().fromJson(value.toString(), type);
         }
+
         return result;
     }
 }
