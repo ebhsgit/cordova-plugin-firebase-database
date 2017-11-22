@@ -30,6 +30,7 @@ public class FirebaseDatabasePlugin extends CordovaPlugin {
     private final static String EVENT_TYPE_CHILD_MOVED = "child_moved";
 
     private Map<String, Object> listeners;
+    private boolean isDestroyed = false;
 
     @Override
     protected void pluginInitialize() {
@@ -57,6 +58,11 @@ public class FirebaseDatabasePlugin extends CordovaPlugin {
         return true;
     }
 
+    @Override
+    public void onDestroy() {
+        this.isDestroyed = true;
+    }
+
     private void on(final JSONArray args, final CallbackContext callbackContext) throws JSONException {
         final String url = args.optString(0);
         final String path = args.getString(1);
@@ -64,61 +70,85 @@ public class FirebaseDatabasePlugin extends CordovaPlugin {
         final String uid = args.getString(6);
         final boolean keepCallback = !uid.isEmpty();
 
-        Query query = createQuery(url, path, args.optJSONObject(3), args.optJSONArray(4), args.optJSONObject(5));
+        final Query query = createQuery(url, path, args.optJSONObject(3), args.optJSONArray(4), args.optJSONObject(5));
 
         if (EVENT_TYPE_VALUE.equals(type)) {
-            ValueEventListener listener = new ValueEventListener() {
+            ValueEventListener valueListener = new ValueEventListener() {
                 @Override
                 public void onDataChange(DataSnapshot snapshot) {
-                    callbackContext.sendPluginResult(createPluginResult(snapshot, keepCallback));
+                    if (isDestroyed) {
+                        query.removeEventListener(this);
+                    } else {
+                        callbackContext.sendPluginResult(createPluginResult(snapshot, keepCallback));
+                    }
                 }
 
                 @Override
                 public void onCancelled(DatabaseError databaseError) {
-                    callbackContext.error(databaseError.getCode());
+                    if (isDestroyed) {
+                        query.removeEventListener(this);
+                    } else {
+                        callbackContext.error(databaseError.getCode());
+                    }
                 }
             };
 
             if (keepCallback) {
-                listeners.put(uid, query.addValueEventListener(listener));
+                query.addValueEventListener(valueListener);
+                listeners.put(uid, valueListener);
             } else {
-                query.addListenerForSingleValueEvent(listener);
+                query.addListenerForSingleValueEvent(valueListener);
             }
         } else if (keepCallback) {
-            listeners.put(uid, query.addChildEventListener(new ChildEventListener() {
+            final ChildEventListener childListener = new ChildEventListener() {
                 @Override
                 public void onChildAdded(DataSnapshot snapshot, String previousChildName) {
-                    if (EVENT_TYPE_CHILD_ADDED.equals(type)) {
+                    if (isDestroyed) {
+                        query.removeEventListener(this);
+                    } else if (EVENT_TYPE_CHILD_ADDED.equals(type)) {
                         callbackContext.sendPluginResult(createPluginResult(snapshot, keepCallback));
                     }
                 }
 
                 @Override
                 public void onChildChanged(DataSnapshot snapshot, String previousChildName) {
-                    if (EVENT_TYPE_CHILD_CHANGED.equals(type)) {
+                    if (isDestroyed) {
+                        query.removeEventListener(this);
+                    } else if (EVENT_TYPE_CHILD_CHANGED.equals(type)) {
                         callbackContext.sendPluginResult(createPluginResult(snapshot, keepCallback));
                     }
                 }
 
                 @Override
                 public void onChildRemoved(DataSnapshot snapshot) {
-                    if (EVENT_TYPE_CHILD_REMOVED.equals(type)) {
+                    if (isDestroyed) {
+                        query.removeEventListener(this);
+                    } else if (EVENT_TYPE_CHILD_REMOVED.equals(type)) {
                         callbackContext.sendPluginResult(createPluginResult(snapshot, keepCallback));
                     }
                 }
 
                 @Override
                 public void onChildMoved(DataSnapshot snapshot, String previousChildName) {
-                    if (EVENT_TYPE_CHILD_MOVED.equals(type)) {
+                    if (isDestroyed) {
+                        query.removeEventListener(this);
+                    } else if (EVENT_TYPE_CHILD_MOVED.equals(type)) {
                         callbackContext.sendPluginResult(createPluginResult(snapshot, keepCallback));
                     }
                 }
 
                 @Override
                 public void onCancelled(DatabaseError databaseError) {
-                    callbackContext.error(databaseError.getCode());
+                    if (isDestroyed) {
+                        query.removeEventListener(this);
+                    } else {
+                        callbackContext.error(databaseError.getCode());
+                    }
                 }
-            }));
+            };
+
+            query.addChildEventListener(childListener);
+            listeners.put(uid, childListener);
         }
     }
 
