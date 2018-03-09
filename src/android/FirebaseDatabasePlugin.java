@@ -30,6 +30,7 @@ public class FirebaseDatabasePlugin extends CordovaPlugin {
     private final static String EVENT_TYPE_CHILD_CHANGED = "child_changed";
     private final static String EVENT_TYPE_CHILD_REMOVED = "child_removed";
     private final static String EVENT_TYPE_CHILD_MOVED = "child_moved";
+    private final static Type settableType = new TypeToken<Map<String, Object>>() {}.getType();
 
     private Map<String, Object> listeners;
     private boolean isDestroyed = false;
@@ -179,7 +180,7 @@ public class FirebaseDatabasePlugin extends CordovaPlugin {
         final String url = args.optString(0);
         final String path = args.getString(1);
         final Object value = args.get(2);
-        final Object priority = args.get(3);
+        final Object priority = args.opt(3);
 
         cordova.getThreadPool().execute(new Runnable() {
             @Override
@@ -375,8 +376,7 @@ public class FirebaseDatabasePlugin extends CordovaPlugin {
         Object result = value;
 
         if (value instanceof JSONObject) {
-            Type type = new TypeToken<Map<String, Object>>() {}.getType();
-            result = new Gson().fromJson(value.toString(), type);
+            result = new Gson().fromJson(value.toString(), settableType);
         }
 
         return result;
