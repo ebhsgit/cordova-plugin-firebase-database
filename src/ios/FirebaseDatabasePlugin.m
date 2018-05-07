@@ -7,6 +7,10 @@
     NSLog(@"Starting Firebase Database plugin");
 
     self.listeners = [NSMutableDictionary dictionary];
+
+    if(![FIRApp defaultApp]) {
+        [FIRApp configure];
+    }
 }
 
 - (FIRDatabase *)getDb:(NSString *)url {
