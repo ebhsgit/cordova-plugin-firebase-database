@@ -32,11 +32,13 @@ public class FirebaseDatabasePlugin extends CordovaPlugin {
     private final static String EVENT_TYPE_CHILD_MOVED = "child_moved";
     private final static Type settableType = new TypeToken<Map<String, Object>>() {}.getType();
 
+    private Gson gson;
     private Map<String, Object> listeners;
     private boolean isDestroyed = false;
 
     @Override
     protected void pluginInitialize() {
+        this.gson = new Gson();
         this.listeners = new HashMap<String, Object>();
     }
 
@@ -360,9 +362,9 @@ public class FirebaseDatabasePlugin extends CordovaPlugin {
             data.put("priority", dataSnapshot.getPriority());
             data.put("key", dataSnapshot.getKey());
             if (value instanceof Map) {
-                value = new JSONObject(new Gson().toJson(value));
+                value = new JSONObject(this.gson.toJson(value));
             } else if (value instanceof List) {
-                value = new JSONArray(new Gson().toJson(value));
+                value = new JSONArray(this.gson.toJson(value));
             }
             data.put("value", value);
         } catch (JSONException e) {}
@@ -372,11 +374,11 @@ public class FirebaseDatabasePlugin extends CordovaPlugin {
         return pluginResult;
     }
 
-    private static Object toSettable(Object value) {
+    private Object toSettable(Object value) {
         Object result = value;
 
         if (value instanceof JSONObject) {
-            result = new Gson().fromJson(value.toString(), settableType);
+            result = this.gson.fromJson(value.toString(), settableType);
         }
 
         return result;
