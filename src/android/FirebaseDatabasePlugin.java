@@ -355,7 +355,7 @@ public class FirebaseDatabasePlugin extends CordovaPlugin {
         }
     }
 
-    private static PluginResult createPluginResult(DataSnapshot dataSnapshot, boolean keepCallback) {
+    private PluginResult createPluginResult(DataSnapshot dataSnapshot, boolean keepCallback) {
         JSONObject data = new JSONObject();
         Object value = dataSnapshot.getValue(false);
         try {
