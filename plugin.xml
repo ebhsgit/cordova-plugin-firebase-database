@@ -24,14 +24,13 @@ xmlns:android="http://schemas.android.com/apk/res/android"
         <config-file target="config.xml" parent="/*">
             <feature name="FirebaseDatabase">
                 <param name="ios-package" value="FirebaseDatabasePlugin" />
-                <param name="onload" value="false" />
             </feature>
         </config-file>
 
         <header-file src="src/ios/FirebaseDatabasePlugin.h" />
         <source-file src="src/ios/FirebaseDatabasePlugin.m" />
 
-        <framework src="Firebase/Database" type="podspec" spec="~> 4.1"/>
+        <framework src="Firebase/Database" type="podspec" spec="~> 5.0"/>
     </platform>
 
     <platform name="android">
@@ -40,7 +39,6 @@ xmlns:android="http://schemas.android.com/apk/res/android"
         <config-file target="res/xml/config.xml" parent="/*">
             <feature name="FirebaseDatabase">
                 <param name="android-package" value="by.chemerisuk.cordova.firebase.FirebaseDatabasePlugin" />
-                <param name="onload" value="false" />
             </feature>
         </config-file>
 
