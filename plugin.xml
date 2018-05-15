@@ -30,6 +30,7 @@ xmlns:android="http://schemas.android.com/apk/res/android"
         <header-file src="src/ios/FirebaseDatabasePlugin.h" />
         <source-file src="src/ios/FirebaseDatabasePlugin.m" />
 
+        <framework src="Firebase/Core" type="podspec" spec="~> 5.0"/>
         <framework src="Firebase/Database" type="podspec" spec="~> 5.0"/>
     </platform>
 
