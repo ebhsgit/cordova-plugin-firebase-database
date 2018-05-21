@@ -112,7 +112,7 @@ DbRef.prototype.remove = function() {
 };
 
 DbRef.prototype.set = function(value) {
-    var args = [this._url, this._path, value];
+    var args = [this._url, this._path, value, null];
     return new Promise(function(resolve, reject) {
         exec(resolve, reject, PLUGIN_NAME, "set", args);
     });
