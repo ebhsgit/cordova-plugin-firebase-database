@@ -2,6 +2,7 @@ package by.chemerisuk.cordova.firebase;
 
 import by.chemerisuk.cordova.support.CordovaMethod;
 import by.chemerisuk.cordova.support.ReflectiveCordovaPlugin;
+import by.chemerisuk.cordova.support.ReflectiveCordovaPlugin.ExecutionThread;
 
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
@@ -49,7 +50,7 @@ public class FirebaseDatabasePlugin extends ReflectiveCordovaPlugin {
         this.isDestroyed = true;
     }
 
-    @CordovaMethod(async = true)
+    @CordovaMethod(ExecutionThread.WORKER)
     private void on(String url, String path, String type, JSONObject orderBy, JSONArray includes, JSONObject limit, String uid, CallbackContext callbackContext) throws JSONException {
         final Query query = createQuery(url, path, orderBy, includes, limit);
         final boolean keepCallback = !uid.isEmpty();
@@ -134,7 +135,7 @@ public class FirebaseDatabasePlugin extends ReflectiveCordovaPlugin {
         }
     }
 
-    @CordovaMethod(async = true)
+    @CordovaMethod(ExecutionThread.WORKER)
     private void off(String url, String path, String uid, CallbackContext callbackContext) {
         Query query = getDb(url).getReference(path);
         Object listener = listeners.get(uid);
@@ -147,7 +148,7 @@ public class FirebaseDatabasePlugin extends ReflectiveCordovaPlugin {
         callbackContext.success();
     }
 
-    @CordovaMethod(async = true)
+    @CordovaMethod(ExecutionThread.WORKER)
     private void set(String url, String path, Object value, Object priority, CallbackContext callbackContext) {
         DatabaseReference ref = getDb(url).getReference(path);
         DatabaseReference.CompletionListener listener = new DatabaseReference.CompletionListener() {
@@ -170,7 +171,7 @@ public class FirebaseDatabasePlugin extends ReflectiveCordovaPlugin {
         }
     }
 
-    @CordovaMethod(async = true)
+    @CordovaMethod(ExecutionThread.WORKER)
     private void update(String url, String path, JSONObject value, CallbackContext callbackContext) throws JSONException {
         Map<String, Object> updates = new HashMap<String, Object>();
         for (Iterator<String> it = value.keys(); it.hasNext(); ) {
@@ -191,7 +192,7 @@ public class FirebaseDatabasePlugin extends ReflectiveCordovaPlugin {
         });
     }
 
-    @CordovaMethod(async = true)
+    @CordovaMethod(ExecutionThread.WORKER)
     private void push(String url, String path, JSONObject value, CallbackContext callbackContext) throws JSONException {
         DatabaseReference ref = getDb(url).getReference(path).push();
 
@@ -211,7 +212,7 @@ public class FirebaseDatabasePlugin extends ReflectiveCordovaPlugin {
         }
     }
 
-    @CordovaMethod(async = true)
+    @CordovaMethod(ExecutionThread.WORKER)
     private void setOnline(String url, boolean enabled, CallbackContext callbackContext) {
         if (enabled) {
             getDb(url).goOnline();
