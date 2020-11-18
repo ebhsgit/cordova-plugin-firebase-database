@@ -15,8 +15,8 @@ xmlns:android="http://schemas.android.com/apk/res/android"
     </js-module>
 
     <engines>
-        <engine name="cordova" version=">=6.0.0"/>
-        <engine name="cordova-android" version=">=6.0.0"/>
+        <engine name="cordova" version=">=10.0.0"/>
+        <engine name="cordova-android" version=">=9.0.0"/>
         <engine name="cordova-ios" version=">=4.3.0"/>
     </engines>
 
@@ -35,7 +35,7 @@ xmlns:android="http://schemas.android.com/apk/res/android"
     </platform>
 
     <platform name="android">
-        <preference name="FIREBASE_DATABASE_VERSION" default="16.0.+"/>
+        <preference name="FIREBASE_DATABASE_VERSION" default="19.5.1"/>
 
         <config-file target="res/xml/config.xml" parent="/*">
             <feature name="FirebaseDatabase">
@@ -43,8 +43,12 @@ xmlns:android="http://schemas.android.com/apk/res/android"
             </feature>
         </config-file>
 
-        <dependency id="cordova-support-android-plugin" version="~0.4.0"/>
-        <dependency id="cordova-support-google-services" version="~1.1.0"/>
+        <config-file target="config.xml" parent="/*">
+            <preference name="GradlePluginGoogleServicesEnabled" value="true" />
+            <preference name="GradlePluginGoogleServicesVersion" value="4.3.3" />
+        </config-file>
+
+        <dependency id="cordova-support-android-plugin" version="~1.0.0"/>
 
         <framework src="com.google.firebase:firebase-database:$FIREBASE_DATABASE_VERSION" />
         <framework src="com.google.code.gson:gson:2+"/>
