@@ -51,6 +51,7 @@ xmlns:android="http://schemas.android.com/apk/res/android"
         <dependency id="cordova-support-android-plugin" version="~1.0.0"/>
 
         <framework src="com.google.firebase:firebase-database:$FIREBASE_DATABASE_VERSION" />
+        <framework src="com.google.firebase:firebase-database-ktx:$FIREBASE_DATABASE_VERSION" />
         <framework src="com.google.code.gson:gson:2+"/>
 
         <source-file src="src/android/FirebaseDatabasePlugin.java"
