@@ -242,7 +242,7 @@ public class FirebaseDatabasePlugin extends ReflectiveCordovaPlugin {
             for (int i = 0, n = includes.length(); i < n; ++i) {
                 JSONObject filters = includes.getJSONObject(i);
 
-                String key = filters.optString("key");
+                String key = filters.has("key") ? filters.optString("key") : null;
                 Object endAt = filters.opt("endAt");
                 Object startAt = filters.opt("startAt");
                 Object equalTo = filters.opt("equalTo");
