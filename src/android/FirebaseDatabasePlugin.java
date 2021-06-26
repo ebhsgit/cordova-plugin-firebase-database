@@ -2,14 +2,12 @@ package by.chemerisuk.cordova.firebase;
 
 import by.chemerisuk.cordova.support.CordovaMethod;
 import by.chemerisuk.cordova.support.ReflectiveCordovaPlugin;
-import by.chemerisuk.cordova.support.ReflectiveCordovaPlugin.ExecutionThread;
 
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.Logger;
 import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 import com.google.gson.Gson;
@@ -26,6 +24,8 @@ import java.util.Iterator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import javax.annotation.Nullable;
 
 public class FirebaseDatabasePlugin extends ReflectiveCordovaPlugin {
     private final static String EVENT_TYPE_VALUE = "value";
@@ -258,20 +258,40 @@ public class FirebaseDatabasePlugin extends ReflectiveCordovaPlugin {
                         query = query.startAt(startAt.toString(), key);
                     }
                 } else if (startAfter != null) {
-                    if (startAfter instanceof Number) {
-                        query = query.startAfter((Double)startAfter, key);
-                    } else if (startAfter instanceof Boolean) {
-                        query = query.startAfter((Boolean)startAfter, key);
+                    if (key == null) {
+                        if (startAfter instanceof Number) {
+                            query = query.startAfter((Double)startAfter);
+                        } else if (startAfter instanceof Boolean) {
+                            query = query.startAfter((Boolean)startAfter);
+                        } else {
+                            query = query.startAfter(startAfter.toString());
+                        }
                     } else {
-                        query = query.startAfter(startAfter.toString(), key);
+                        if (startAfter instanceof Number) {
+                            query = query.startAfter((Double)startAfter, key);
+                        } else if (startAfter instanceof Boolean) {
+                            query = query.startAfter((Boolean)startAfter, key);
+                        } else {
+                            query = query.startAfter(startAfter.toString(), key);
+                        }
                     }
                 } else if (endBefore != null) {
-                    if (endBefore instanceof Number) {
-                        query = query.endBefore((Double)endBefore, key);
-                    } else if (endBefore instanceof Boolean) {
-                        query = query.endBefore((Boolean)endBefore, key);
+                    if (key == null) {
+                        if (endBefore instanceof Number) {
+                            query = query.endBefore((Double) endBefore);
+                        } else if (endBefore instanceof Boolean) {
+                            query = query.endBefore((Boolean) endBefore);
+                        } else {
+                            query = query.endBefore(endBefore.toString());
+                        }
                     } else {
-                        query = query.endBefore(endBefore.toString(), key);
+                        if (endBefore instanceof Number) {
+                            query = query.endBefore((Double) endBefore, key);
+                        } else if (endBefore instanceof Boolean) {
+                            query = query.endBefore((Boolean) endBefore, key);
+                        } else {
+                            query = query.endBefore(endBefore.toString(), key);
+                        }
                     }
                 } else if (endAt != null) {
                     if (endAt instanceof Number) {
