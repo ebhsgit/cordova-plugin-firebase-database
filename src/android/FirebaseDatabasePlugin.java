@@ -246,6 +246,8 @@ public class FirebaseDatabasePlugin extends ReflectiveCordovaPlugin {
                 Object endAt = filters.opt("endAt");
                 Object startAt = filters.opt("startAt");
                 Object equalTo = filters.opt("equalTo");
+                Object startAfter = filters.opt("startAfter");
+                Object endBefore = filters.opt("endBefore");
 
                 if (startAt != null) {
                     if (startAt instanceof Number) {
@@ -254,6 +256,22 @@ public class FirebaseDatabasePlugin extends ReflectiveCordovaPlugin {
                         query = query.startAt((Boolean)startAt, key);
                     } else {
                         query = query.startAt(startAt.toString(), key);
+                    }
+                } else if (startAfter != null) {
+                    if (startAfter instanceof Number) {
+                        query = query.startAfter((Double)startAfter, key);
+                    } else if (startAfter instanceof Boolean) {
+                        query = query.startAfter((Boolean)startAfter, key);
+                    } else {
+                        query = query.startAfter(startAfter.toString(), key);
+                    }
+                } else if (endBefore != null) {
+                    if (endBefore instanceof Number) {
+                        query = query.endBefore((Double)endBefore, key);
+                    } else if (endBefore instanceof Boolean) {
+                        query = query.endBefore((Boolean)endBefore, key);
+                    } else {
+                        query = query.endBefore(endBefore.toString(), key);
                     }
                 } else if (endAt != null) {
                     if (endAt instanceof Number) {

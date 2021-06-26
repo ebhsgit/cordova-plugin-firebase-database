@@ -26,12 +26,20 @@ function DbQuery(ref, orderBy) {
 }
 
 DbQuery.prototype = {
+    endBefore: function(value, key) {
+        this._includes.push({endBefore: value, key: key});
+        return this;
+    },
     endAt: function(value, key) {
         this._includes.push({endAt: value, key: key});
         return this;
     },
     startAt: function(value, key) {
         this._includes.push({startAt: value, key: key});
+        return this;
+    },
+    startAfter: function(value, key) {
+        this._includes.push({startAfter: value, key: key});
         return this;
     },
     equalTo: function(value, key) {
