@@ -336,15 +336,17 @@ public class FirebaseDatabasePlugin extends ReflectiveCordovaPlugin {
         private Query processLimit(Query query, JSONObject limit) throws JSONException {
             if (limit == null) return query;
 
-            Log.d(TAG, "QueryBuilder: processing 'limit'");
-
-            if (limit.has("first"))
+            if (limit.has("first")) {
+                Log.d(TAG, "QueryBuilder: 'limitToFirst'");
                 return query.limitToFirst(limit.getInt("first"));
+            }
 
-            if (limit.has("last"))
+            if (limit.has("last")) {
+                Log.d(TAG, "QueryBuilder: 'limitToLast'");
                 return query.limitToLast(limit.getInt("last"));
+            }
 
-            throw new JSONException("'limit' is invalid");
+            return query;
         }
 
         private Query setFilter(Query query, JSONObject filter) throws JSONException {
