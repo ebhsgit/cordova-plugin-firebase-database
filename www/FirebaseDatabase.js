@@ -54,6 +54,18 @@ DbQuery.prototype = {
         this._limit = {last: limit};
         return this;
     },
+    get: function(timeoutInSec) {
+        var ref = this.ref;
+        var args = [ref._url, ref._path,
+            this._orderBy, this._includes, this._limit,
+            timeoutInSec || 60];
+
+        return new Promise(function(resolve, reject) {
+            exec(resolve, reject, PLUGIN_NAME, "get", args);
+        }).then(function(data) {
+            return new DbSnapshot(ref, data);
+        });
+    },
     on: function(eventType, success, error) {
         var ref = this.ref;
         var callback = function(data) {

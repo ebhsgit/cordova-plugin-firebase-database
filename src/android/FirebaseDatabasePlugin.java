@@ -5,6 +5,8 @@ import android.util.Log;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import com.google.android.gms.tasks.Task;
+import com.google.android.gms.tasks.Tasks;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -26,6 +28,9 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import by.chemerisuk.cordova.support.CordovaMethod;
 import by.chemerisuk.cordova.support.ReflectiveCordovaPlugin;
@@ -54,6 +59,24 @@ public class FirebaseDatabasePlugin extends ReflectiveCordovaPlugin {
     @Override
     public void onDestroy() {
         this.isDestroyed = true;
+    }
+
+    @CordovaMethod(ExecutionThread.WORKER)
+    private void get(String url, String path, JSONObject orderBy, JSONArray includes, JSONObject limit, long timeout, CallbackContext callbackContext) throws JSONException {
+        final Query query = new QueryBuilder(getDb(url)).createQuery(path, orderBy, includes, limit);
+        Task<DataSnapshot> task = query.get();
+        try {
+            DataSnapshot snapshot = Tasks.await(task, timeout, TimeUnit.SECONDS);
+            // If `get()` could not reach server, it returns from cache.
+            // How to determine if the snapshot was from cache?
+            callbackContext.sendPluginResult(createPluginResult(snapshot, false));
+        }
+        catch (ExecutionException | InterruptedException e) {
+            callbackContext.error(e.getMessage());
+        }
+        catch (TimeoutException e) {
+            callbackContext.error("Timed out");
+        }
     }
 
     @CordovaMethod(ExecutionThread.WORKER)
