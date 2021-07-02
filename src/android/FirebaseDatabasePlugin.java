@@ -376,36 +376,53 @@ public class FirebaseDatabasePlugin extends ReflectiveCordovaPlugin {
             //noinspection ConstantConditions
             @Nullable String key = filter.optString("key", null);
 
-            Object startAt = filter.opt("startAt");
+            Object startAt = getFilter(filter, "startAt");
             if (startAt != null) return startAtHandler(query, startAt, key);
 
-            Object startAfter = filter.opt("startAfter");
+            Object startAfter = getFilter(filter, "startAfter");
             if (startAfter != null) return startAfterHandler(query, startAfter, key);
 
-            Object endBefore = filter.opt("endBefore");
+            Object endBefore = getFilter(filter, "endBefore");
             if (endBefore != null) return endBeforeHandler(query, endBefore, key);
 
-            Object endAt = filter.opt("endAt");
+            Object endAt = getFilter(filter, "endAt");
             if (endAt != null) return endAtHandler(query, endAt, key);
 
-            Object equalTo = filter.opt("equalTo");
+            Object equalTo = getFilter(filter, "equalTo");
             if (equalTo != null) return equalToHandler(query, equalTo, key);
 
             throw new JSONException("'includes' are invalid");
         }
 
+        /**
+         * Return the filter value
+         * <p>
+         * FIX - org.json bug, where null value is returned as JSONObject.NULL, which is "null" string.
+         * https://stackoverflow.com/a/23377941
+         */
+        private Object getFilter(JSONObject filter, String filterName) {
+            if (filter.isNull(filterName)) return null;
+            return filter.opt(filterName);
+        }
+
         private Query startAtHandler(Query query, Object value, String key) {
             Log.d(TAG, "QueryBuilder: processing startAt");
+
+            String str = value.toString();
+            if (str.isEmpty()) {
+                Log.d(TAG, "QueryBuilder: startAt - Value is empty. Skipping this filter");
+                return query;
+            }
 
             if (isOrderByKey) {
                 if (value instanceof Number) return query.startAt((Double) value);
                 if (value instanceof Boolean) return query.startAt((Boolean) value);
-                return query.startAt(value.toString());
+                return query.startAt(str);
             }
             else {
                 if (value instanceof Number) return query.startAt((Double) value, key);
                 if (value instanceof Boolean) return query.startAt((Boolean) value, key);
-                return query.startAt(value.toString(), key);
+                return query.startAt(str, key);
             }
         }
 
